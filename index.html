@@ -276,20 +276,6 @@
             const [isAdmissionOpen, setIsAdmissionOpen] = useState(false);
             const [selectedState, setSelectedState] = useState(0);
             const [toast, setToast] = useState({ message: '', visible: false, type: 'success' });
-            const [showEventPopup, setShowEventPopup] = useState(false);
-
-            useEffect(() => {
-                const dismissed = localStorage.getItem('encuentro_popup_dismissed');
-                if (!dismissed) {
-                    const timer = setTimeout(() => setShowEventPopup(true), 2000);
-                    return () => clearTimeout(timer);
-                }
-            }, []);
-
-            const dismissEventPopup = () => {
-                setShowEventPopup(false);
-                localStorage.setItem('encuentro_popup_dismissed', 'true');
-            };
 
             // Lead Magnet
             const [lmName, setLmName] = useState("");
@@ -629,50 +615,6 @@
                     </div>
                 </div>
 
-
-                {/* EVENT POPUP */}
-                {showEventPopup && (
-                    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-500" onClick={dismissEventPopup}>
-                        <div className="relative w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-500" onClick={e => e.stopPropagation()}>
-                            <button onClick={dismissEventPopup} className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center text-white transition-colors"><X className="w-4 h-4"/></button>
-                            <div className="bg-gradient-to-br from-cuidarte-dark-deep via-cuidarte-green-deep to-cuidarte-green p-8 text-white text-center">
-                                <p className="text-cuidarte-gold font-bold text-[10px] uppercase tracking-[3px] mb-2">Escuela Cuid-Arte presenta</p>
-                                <h3 className="font-heading text-3xl font-extrabold mb-1">I Encuentro</h3>
-                                <h3 className="font-heading text-3xl font-extrabold text-cuidarte-mint mb-3">Cuid-Arte</h3>
-                                <p className="text-white/80 text-sm">9 - 10 Mayo 2026 · Hinojares, Jaén</p>
-                            </div>
-                            <div className="p-6 text-center space-y-4">
-                                <p className="text-slate-600 text-sm leading-relaxed">Un fin de semana para <strong className="text-cuidarte-dark-deep">reconectar contigo</strong>, con tu cuerpo y con la vida. Naturaleza, bienestar y tribu.</p>
-                                <div className="flex gap-2 justify-center flex-wrap text-[10px] font-bold text-cuidarte-green-deep">
-                                    <span className="bg-cuidarte-mint/40 px-3 py-1 rounded-full">Yoga</span>
-                                    <span className="bg-cuidarte-mint/40 px-3 py-1 rounded-full">Senderismo</span>
-                                    <span className="bg-cuidarte-mint/40 px-3 py-1 rounded-full">Cata AOVE</span>
-                                    <span className="bg-cuidarte-mint/40 px-3 py-1 rounded-full">Tribu</span>
-                                </div>
-                                <p className="text-xs text-slate-400">Plazas limitadas · Precio especial para alumnas</p>
-                                <a href="encuentro" className="block w-full bg-cuidarte-gold hover:bg-cuidarte-gold-deep text-white font-bold py-3.5 rounded-xl transition-all shadow-lg text-sm">Reservar mi plaza</a>
-                                <button onClick={dismissEventPopup} className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Ahora no, gracias</button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* EVENT BANNER */}
-                <a href="encuentro" className="block relative z-50 overflow-hidden group" style={{ background: 'linear-gradient(135deg, #1a2e1a 0%, #4F7F50 50%, #D4AF37 100%)' }}>
-                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800)', backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
-                    <div className="relative container mx-auto px-6 py-4 md:py-5 flex flex-col md:flex-row items-center justify-center gap-3 md:gap-6">
-                        <div className="flex items-center gap-3">
-                            <span className="text-2xl">🌿</span>
-                            <div className="text-center md:text-left">
-                                <p className="font-heading font-extrabold text-white text-sm md:text-base leading-tight">I ENCUENTRO CUID-ARTE</p>
-                                <p className="text-cuidarte-mint text-xs md:text-sm font-medium">9-10 Mayo 2026 · Hinojares, Jaén</p>
-                            </div>
-                        </div>
-                        <div className="bg-white text-cuidarte-dark-deep font-bold text-xs md:text-sm px-6 py-2.5 rounded-full group-hover:bg-cuidarte-gold group-hover:text-white transition-all shadow-lg">
-                            Reserva tu plaza →
-                        </div>
-                    </div>
-                </a>
 
                 {/* TOP BAR */}
                 <div className="bg-cuidarte-dark-deep text-slate-200 text-[11px] md:text-xs py-2.5 px-4 text-center tracking-wide relative z-50">
