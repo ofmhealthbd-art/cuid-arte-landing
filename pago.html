@@ -127,8 +127,12 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Nombre completo <span class="text-rose-500">*</span></label>
-                    <input id="customer_name" type="text" autocomplete="name" class="w-full px-4 py-3 rounded-xl border border-sage-200 focus:border-sage-500 focus:ring-2 focus:ring-sage-500/20 outline-none text-sm bg-white" placeholder="Tu nombre y apellidos">
+                    <label class="block text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Nombre <span class="text-rose-500">*</span></label>
+                    <input id="customer_first_name" type="text" autocomplete="given-name" class="w-full px-4 py-3 rounded-xl border border-sage-200 focus:border-sage-500 focus:ring-2 focus:ring-sage-500/20 outline-none text-sm bg-white" placeholder="María">
+                </div>
+                <div>
+                    <label class="block text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Apellidos <span class="text-rose-500">*</span></label>
+                    <input id="customer_last_name" type="text" autocomplete="family-name" class="w-full px-4 py-3 rounded-xl border border-sage-200 focus:border-sage-500 focus:ring-2 focus:ring-sage-500/20 outline-none text-sm bg-white" placeholder="López Pérez">
                 </div>
                 <div id="dni-wrapper">
                     <label class="block text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-1.5">DNI / NIE <span class="text-rose-500">*</span></label>
@@ -292,7 +296,9 @@
 
     // ────── Pago ──────
     async function pay(method, clickedBtn) {
-        const name    = $('customer_name').value.trim();
+        const firstName = $('customer_first_name').value.trim();
+        const lastName  = $('customer_last_name').value.trim();
+        const name    = `${firstName} ${lastName}`.trim();
         const email   = $('customer_email').value.trim();
         const phone   = $('customer_phone').value.trim();
         const address = $('customer_address').value.trim();
@@ -306,7 +312,8 @@
         err.classList.add('hidden');
 
         // Validación
-        if (!name || name.length < 2) return failForm('Indica tu nombre completo.');
+        if (!firstName) return failForm('Indica tu nombre.');
+        if (!lastName) return failForm('Indica tus apellidos.');
         if (!email || !email.includes('@')) return failForm('Indica un email válido.');
         if (!address) return failForm('Indica tu dirección.');
         if (!reCP.test(cp)) return failForm('El código postal debe tener 5 dígitos.');
@@ -339,6 +346,8 @@
                     customer_email: email,
                     customer_phone: phone || null,
                     billing: {
+                        first_name: firstName,
+                        last_name: lastName,
                         is_company: isCompany,
                         tax_id: isCompany ? companyTaxId : dni,
                         company_name: isCompany ? companyName : null,
