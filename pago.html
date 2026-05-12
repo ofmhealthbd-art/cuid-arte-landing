@@ -84,14 +84,25 @@
 
         <!-- Resumen del cobro -->
         <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-8 shadow-sm mb-6">
-            <div class="flex items-start justify-between gap-6 mb-5">
-                <div class="min-w-0">
-                    <p id="plan-name" class="heading text-xs font-bold text-sand-500 uppercase tracking-[1.5px] mb-1 hidden"></p>
-                    <h2 id="concept" class="display text-xl md:text-2xl font-bold text-sage-900 leading-tight">—</h2>
+            <div class="mb-4">
+                <p id="plan-name" class="heading text-xs font-bold text-sand-500 uppercase tracking-[1.5px] mb-1 hidden"></p>
+                <h2 id="concept" class="display text-xl md:text-2xl font-bold text-sage-900 leading-tight">—</h2>
+            </div>
+
+            <!-- Desglose IVA -->
+            <div class="mt-5 space-y-2 text-sm">
+                <div id="row-base" class="flex justify-between text-sage-600">
+                    <span>Base imponible</span>
+                    <span id="amount-base" class="font-medium tabular-nums">—</span>
                 </div>
-                <div class="text-right shrink-0">
-                    <p class="text-[10px] heading font-semibold text-sage-500 uppercase tracking-wider">Total</p>
-                    <p id="amount" class="display text-3xl md:text-4xl font-bold text-sage-900">—</p>
+                <div id="row-vat" class="flex justify-between text-sage-600">
+                    <span id="vat-label">IVA</span>
+                    <span id="amount-vat" class="font-medium tabular-nums">—</span>
+                </div>
+                <div class="h-px bg-gradient-to-r from-transparent via-sand-300 to-transparent my-3"></div>
+                <div class="flex justify-between items-baseline">
+                    <span class="heading font-bold text-sage-900 uppercase text-xs tracking-wider">Total a pagar</span>
+                    <span id="amount" class="display text-2xl md:text-3xl font-bold text-sage-900 tabular-nums">—</span>
                 </div>
             </div>
 
@@ -218,7 +229,7 @@
 
         const { data: link, error } = await sb
             .from('redsys_payment_links')
-            .select('token, amount_cents, concept, plan_name, methods_allowed, expires_at, status')
+            .select('token, amount_cents, base_amount_cents, vat_rate, vat_amount_cents, concept, plan_name, methods_allowed, expires_at, status')
             .eq('token', token)
             .maybeSingle();
 
@@ -236,6 +247,21 @@
     function renderLink(link) {
         $('concept').textContent = link.concept;
         $('amount').textContent = fmtEUR(link.amount_cents);
+
+        // Desglose IVA — si el link no trae base/vat (links viejos), oculta filas
+        if (link.base_amount_cents != null && link.vat_rate != null) {
+            $('amount-base').textContent = fmtEUR(link.base_amount_cents);
+            const vatRate = Number(link.vat_rate);
+            $('vat-label').textContent = vatRate > 0 ? `IVA (${vatRate}%)` : 'IVA (exento)';
+            $('amount-vat').textContent = link.vat_amount_cents != null
+                ? fmtEUR(link.vat_amount_cents)
+                : fmtEUR(link.amount_cents - link.base_amount_cents);
+            $('row-base').classList.remove('hidden');
+            $('row-vat').classList.remove('hidden');
+        } else {
+            $('row-base').classList.add('hidden');
+            $('row-vat').classList.add('hidden');
+        }
         if (link.plan_name) {
             $('plan-name').textContent = link.plan_name;
             $('plan-name').classList.remove('hidden');
