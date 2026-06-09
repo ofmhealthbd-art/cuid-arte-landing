@@ -428,6 +428,10 @@
         const reply = data.reply || "(sin respuesta)";
         history.push({ role: "assistant", content: reply });
         appendBubble("assistant", reply);
+        if (data.lead_ready && !notified) {
+          // Esperar un instante para que el usuario vea el mensaje de cierre
+          setTimeout(() => sendToGroup(true), 800);
+        }
       }
     } catch (e) {
       removeTyping();
@@ -440,17 +444,17 @@
     }
   }
 
-  notifyBtn.addEventListener("click", async () => {
+  async function sendToGroup(isAuto = false) {
     if (notified) {
-      showToast("Esta conversación ya se envió al grupo.");
+      if (!isAuto) showToast("Esta conversación ya se envió al grupo.");
       return;
     }
-    if (history.length < 1) {
-      showToast("Conversa un poco con Lúa antes de enviar el resumen.");
+    if (history.length < 2) {
+      if (!isAuto) showToast("Conversa un poco con Lúa antes de enviar el resumen.");
       return;
     }
     notifyBtn.disabled = true;
-    showToast("Generando resumen y enviando al grupo…", 4000);
+    showToast(isAuto ? "Avisando al equipo…" : "Generando resumen y enviando al grupo…", 4000);
     try {
       const res = await fetch(`${SUPABASE_URL}/functions/v1/setter-notify-preview`, {
         method: "POST",
@@ -468,14 +472,17 @@
         notifyBtn.disabled = false;
       } else {
         notified = true;
-        showToast("✅ Enviado al grupo Hábitos Anticáncer.");
+        notifyBtn.textContent = "✅ Enviado al equipo";
+        showToast("✅ Aviso enviado al grupo Hábitos Anticáncer.", 3500);
       }
     } catch (e) {
       console.error(e);
       showToast("Error de conexión al enviar.");
       notifyBtn.disabled = false;
     }
-  });
+  }
+
+  notifyBtn.addEventListener("click", () => sendToGroup(false));
 </script>
 
 </body>
