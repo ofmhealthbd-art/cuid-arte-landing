@@ -53,7 +53,7 @@
       '<div style="max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:14px;align-items:flex-start">' +
         '<div style="flex:1">' +
           '<strong style="display:block;font-size:14px;margin-bottom:4px">Cookies en Cuid-Arte</strong>' +
-          '<span style="opacity:0.9">Usamos cookies propias <strong>tecnicas y necesarias</strong> para que la web funcione (sesion, formulario). No usamos cookies de marketing ni de analitica de terceros. Puedes leer mas en nuestra ' +
+          '<span style="opacity:0.9">Usamos cookies propias <strong>tecnicas y necesarias</strong> (sesion, formulario) y, solo si las aceptas, cookies de <strong>analitica</strong> (Google Analytics) para entender como se usa la web y mejorarla. No usamos cookies de publicidad. Puedes leer mas en nuestra ' +
           '<a href="politica-cookies.html" style="color:#CDE8CD;text-decoration:underline">Politica de Cookies</a>.</span>' +
         '</div>' +
         '<div style="display:flex;gap:10px;flex-wrap:wrap;width:100%;justify-content:flex-end">' +
