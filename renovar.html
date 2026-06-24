@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="/analytics.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renueva tu plan · Cuid-Arte</title>
+    <meta name="robots" content="noindex,nofollow">
+    <meta name="description" content="Firma de continuidad de Escuela Cuid-Arte.">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'sage':  { 50:'#f6f7f4',100:'#e8ebe3',200:'#d4dbc9',300:'#b4c0a3',400:'#94a67d',500:'#6BA06B',600:'#558055',700:'#445f43',800:'#394d38',900:'#1a2e1a' },
+                        'sand':  { 50:'#faf8f5',100:'#f5f0e8',200:'#ebe0d0',300:'#dcc9ad',400:'#D4AF37',500:'#B08D26',600:'#8c6f1e',700:'#6b5518' },
+                        'earth': { 50:'#FAF9F6',100:'#f0ede6',200:'#e0dbd0',800:'#2C3E50',900:'#1A2530' },
+                    },
+                    fontFamily: {
+                        display:['Playfair Display','Georgia','serif'],
+                        heading:['Montserrat','sans-serif'],
+                        sans:['Open Sans','sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@500;600;700;800&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family:'Open Sans',sans-serif; background:#FAF9F6; color:#1a2e1a; }
+        h1,h2,h3,.display { font-family:'Playfair Display',serif; }
+        .heading { font-family:'Montserrat',sans-serif; }
+        #contract-box { white-space:pre-wrap; }
+        #sign-canvas { touch-action:none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<header class="border-b border-sage-100 bg-white">
+    <div class="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between">
+        <a href="/" class="display text-xl font-bold text-sage-800">Cuid-Arte</a>
+        <div class="flex items-center gap-2 text-xs heading font-semibold text-sage-600 uppercase tracking-wider">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+            Continuidad
+        </div>
+    </div>
+</header>
+
+<main class="flex-1 max-w-3xl w-full mx-auto px-6 py-10 md:py-16">
+
+    <!-- cargando -->
+    <div id="state-loading" class="text-center py-20">
+        <div class="inline-block w-10 h-10 border-4 border-sage-200 border-t-sage-600 rounded-full animate-spin"></div>
+        <p class="mt-4 text-sm text-sage-600 heading font-medium">Preparando tu renovación…</p>
+    </div>
+
+    <!-- error -->
+    <div id="state-error" class="hidden text-center py-16 max-w-md mx-auto">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-rose-50 mb-4">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <h1 class="display text-2xl font-bold text-sage-900 mb-2">Este enlace no es válido</h1>
+        <p id="error-msg" class="text-sm text-sage-700 leading-relaxed">Es posible que haya caducado. Escríbenos por Telegram y te enviamos uno nuevo.</p>
+    </div>
+
+    <!-- listo -->
+    <div id="state-ready" class="hidden">
+        <div class="text-center mb-8">
+            <p class="heading text-xs font-semibold text-sand-500 uppercase tracking-[2px] mb-2">Cuid-Arte</p>
+            <h1 id="title" class="display text-3xl md:text-4xl font-bold text-sage-900">Tu continuidad en la Escuela</h1>
+            <p class="mt-3 text-sm text-sage-600 leading-relaxed max-w-lg mx-auto">Sigues con todo lo que ya tienes: la Dra. Odile, la comunidad, las clases y los encuentros presenciales. Para dejarlo formalizado, lee y firma este documento.</p>
+        </div>
+
+        <!-- Resumen del plan -->
+        <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-8 shadow-sm mb-6">
+            <p id="plan-name" class="heading text-xs font-bold text-sand-500 uppercase tracking-[1.5px] mb-1"></p>
+            <h2 id="plan-title" class="display text-xl md:text-2xl font-bold text-sage-900 leading-tight mb-5">—</h2>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between text-sage-600"><span>Base imponible</span><span id="amount-base" class="font-medium tabular-nums">—</span></div>
+                <div class="flex justify-between text-sage-600"><span id="vat-label">IVA</span><span id="amount-vat" class="font-medium tabular-nums">—</span></div>
+                <div class="h-px bg-gradient-to-r from-transparent via-sand-300 to-transparent my-3"></div>
+                <div class="flex justify-between items-baseline"><span class="heading font-bold text-sage-900 uppercase text-xs tracking-wider">Total</span><span id="amount-total" class="display text-2xl md:text-3xl font-bold text-sage-900 tabular-nums">—</span></div>
+            </div>
+        </div>
+
+        <!-- Contrato -->
+        <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-8 shadow-sm mb-6">
+            <h3 class="heading text-sm font-bold text-sage-800 uppercase tracking-wider mb-4">Documento de continuidad</h3>
+            <div id="contract-box" class="max-h-96 overflow-y-auto text-[13px] leading-relaxed text-sage-700 bg-sage-50/50 border border-sage-200 rounded-2xl p-5"></div>
+        </div>
+
+        <!-- Consentimiento + firma -->
+        <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-8 shadow-sm mb-6">
+            <label class="flex items-start gap-3 text-sm text-sage-800 cursor-pointer mb-5">
+                <input id="consent" type="checkbox" class="mt-0.5 w-5 h-5 text-sage-700 border-sage-300 rounded focus:ring-sage-500 cursor-pointer flex-shrink-0">
+                <span class="leading-relaxed">He leído y acepto el documento de continuidad de Escuela Cuid-Arte para el periodo indicado. <span class="text-rose-500">*</span></span>
+            </label>
+
+            <div id="sign-wrapper" class="hidden">
+                <p class="text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-2">Firma aquí</p>
+                <canvas id="sign-canvas" class="w-full h-40 border-2 border-dashed border-sage-300 rounded-2xl bg-white"></canvas>
+                <div class="flex items-center justify-between mt-2">
+                    <button id="clear-sign" type="button" class="text-xs text-sage-500 hover:text-sage-700 underline">Borrar firma</button>
+                    <span id="sign-ok" class="hidden text-xs text-sage-600 font-semibold">✓ Firma capturada</span>
+                </div>
+            </div>
+
+            <p id="form-error" class="hidden mt-4 text-xs text-rose-600 font-semibold"></p>
+
+            <button id="submit-btn" type="button" class="mt-6 w-full bg-sage-700 hover:bg-sage-800 disabled:opacity-50 text-white heading font-bold text-base px-6 py-4 rounded-2xl transition-all shadow-md hover:shadow-lg active:scale-[0.99] flex items-center justify-center gap-3">
+                Firmar y continuar al pago
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <p class="mt-3 text-center text-[11px] text-sage-500">Tras firmar te llevaremos a la pasarela de pago segura (tarjeta o Bizum).</p>
+        </div>
+    </div>
+</main>
+
+<footer class="border-t border-sage-100 py-6 mt-10 text-center text-xs text-sage-500">
+    <p>&copy; 2026 NEIKO HEALTH, S.L. · Cuid-Arte · NIF B22928311 · RM Madrid, hoja M-865423</p>
+</footer>
+
+<script>
+(function () {
+    const SB_URL = "__SUPABASE_URL__";
+    const SB_KEY = "__SUPABASE_ANON_KEY__";
+    const $ = (id) => document.getElementById(id);
+    const fmtEUR = (cents) => new Intl.NumberFormat('es-ES', { style:'currency', currency:'EUR' }).format((cents||0) / 100);
+    const token = new URLSearchParams(location.search).get('t');
+
+    function showState(id) {
+        ['state-loading','state-error','state-ready'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+    }
+    function showError(msg) { if (msg) $('error-msg').textContent = msg; showState('state-error'); }
+
+    // ── Canvas de firma ──
+    let signed = false, signatureData = '';
+    const canvas = $('sign-canvas');
+    function initCanvas() {
+        const ctx = canvas.getContext('2d');
+        const ratio = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * ratio; canvas.height = rect.height * ratio;
+        ctx.scale(ratio, ratio);
+        ctx.strokeStyle = '#1a2e1a'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        let drawing = false, last = null;
+        const pos = (e) => {
+            const r = canvas.getBoundingClientRect();
+            const p = e.touches ? e.touches[0] : e;
+            return { x: p.clientX - r.left, y: p.clientY - r.top };
+        };
+        const start = (e) => { drawing = true; last = pos(e); e.preventDefault(); };
+        const move = (e) => {
+            if (!drawing) return;
+            const p = pos(e);
+            ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+            last = p; signed = true; e.preventDefault();
+        };
+        const end = () => { if (drawing) { drawing = false; signatureData = canvas.toDataURL('image/png'); if (signed) $('sign-ok').classList.remove('hidden'); } };
+        canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', end);
+        canvas.addEventListener('touchstart', start, {passive:false}); canvas.addEventListener('touchmove', move, {passive:false}); canvas.addEventListener('touchend', end);
+    }
+    $('clear-sign').addEventListener('click', () => {
+        const ctx = canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height);
+        signed = false; signatureData = ''; $('sign-ok').classList.add('hidden');
+    });
+    $('consent').addEventListener('change', (e) => {
+        $('sign-wrapper').classList.toggle('hidden', !e.target.checked);
+        if (e.target.checked && !canvas.dataset.init) { initCanvas(); canvas.dataset.init = '1'; }
+    });
+
+    // ── Carga ──
+    async function load() {
+        if (!token) return showError('Falta el código del enlace.');
+        try {
+            const res = await fetch(`${SB_URL}/functions/v1/sign-renewal?t=${encodeURIComponent(token)}`, {
+                headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+            });
+            const d = await res.json();
+            if (!res.ok || !d.ok) return showError(d.error === 'no_encontrada' ? 'Este enlace no es válido.' : 'No se pudo cargar tu renovación.');
+            if (d.expired) return showError('Este enlace ha caducado. Pídenos uno nuevo por Telegram.');
+            if (d.already_signed && d.payment_url) { location.href = d.payment_url; return; }
+            render(d);
+            showState('state-ready');
+        } catch (e) { showError('No se pudo conectar. Inténtalo de nuevo.'); }
+    }
+
+    function render(d) {
+        if (d.first_name) $('title').textContent = `${d.first_name}, tu continuidad en la Escuela`;
+        $('plan-name').textContent = d.plan_name || '';
+        $('plan-title').textContent = `${d.duration_months} meses de continuidad`;
+        $('amount-base').textContent = fmtEUR(d.base_amount_cents);
+        const vr = Number(d.vat_rate);
+        $('vat-label').textContent = vr > 0 ? `IVA (${vr}%)` : 'IVA (exento)';
+        $('amount-vat').textContent = fmtEUR(d.vat_amount_cents);
+        $('amount-total').textContent = fmtEUR(d.total_amount_cents);
+        $('contract-box').textContent = d.contract_content || 'Documento de continuidad de Escuela Cuid-Arte.';
+    }
+
+    // ── Envío ──
+    $('submit-btn').addEventListener('click', async () => {
+        const err = $('form-error'); err.classList.add('hidden');
+        if (!$('consent').checked) return fail('Marca la casilla de aceptación para continuar.');
+        if (!signed || signatureData.length < 2000) return fail('Necesitamos tu firma para continuar.');
+        const btn = $('submit-btn'); btn.disabled = true;
+        btn.innerHTML = '<div class="w-6 h-6 border-4 border-white/40 border-t-white rounded-full animate-spin"></div> Procesando…';
+        try {
+            const res = await fetch(`${SB_URL}/functions/v1/sign-renewal`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+                body: JSON.stringify({ sign_token: token, signature_image: signatureData, consent_continuity: true, user_agent: navigator.userAgent }),
+            });
+            const d = await res.json();
+            if (!res.ok || !d.payment_url) { btn.disabled = false; btn.textContent = 'Firmar y continuar al pago'; return fail(d.error || 'No se pudo procesar la firma.'); }
+            location.href = d.payment_url;
+        } catch (e) {
+            btn.disabled = false; btn.textContent = 'Firmar y continuar al pago';
+            fail('No se pudo conectar. Inténtalo de nuevo.');
+        }
+        function fail(m) { err.textContent = m; err.classList.remove('hidden'); }
+    });
+    function fail(m) { $('form-error').textContent = m; $('form-error').classList.remove('hidden'); }
+
+    load();
+})();
+</script>
+</body>
+</html>
