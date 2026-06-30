@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="/analytics.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu opinión · Cuid-Arte</title>
+    <meta name="robots" content="noindex,nofollow">
+    <meta name="description" content="Cuéntanos tu experiencia en la Escuela Cuid-Arte.">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'sage':  { 50:'#f6f7f4',100:'#e8ebe3',200:'#d4dbc9',300:'#b4c0a3',400:'#94a67d',500:'#6BA06B',600:'#558055',700:'#445f43',800:'#394d38',900:'#1a2e1a' },
+                        'sand':  { 50:'#faf8f5',100:'#f5f0e8',200:'#ebe0d0',300:'#dcc9ad',400:'#D4AF37',500:'#B08D26',600:'#8c6f1e',700:'#6b5518' },
+                        'earth': { 50:'#FAF9F6',100:'#f0ede6',200:'#e0dbd0',800:'#2C3E50',900:'#1A2530' },
+                    },
+                    fontFamily: {
+                        display:['Playfair Display','Georgia','serif'],
+                        heading:['Montserrat','sans-serif'],
+                        sans:['Open Sans','sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@500;600;700;800&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family:'Open Sans',sans-serif; background:#FAF9F6; color:#1a2e1a; }
+        h1,h2,h3,.display { font-family:'Playfair Display',serif; }
+        .heading { font-family:'Montserrat',sans-serif; }
+        .opt { transition:all .15s; }
+        .opt[aria-checked="true"] { border-color:#558055; background:#f6f7f4; box-shadow:0 0 0 1px #558055 inset; }
+        .scorebtn[aria-checked="true"] { background:#558055; color:#fff; border-color:#558055; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<header class="border-b border-sage-100 bg-white">
+    <div class="max-w-2xl mx-auto px-6 py-5 flex items-center justify-between">
+        <a href="/" class="display text-xl font-bold text-sage-800">Cuid-Arte</a>
+        <div class="flex items-center gap-2 text-xs heading font-semibold text-sage-600 uppercase tracking-wider">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Tu opinión
+        </div>
+    </div>
+</header>
+
+<main class="flex-1 max-w-2xl w-full mx-auto px-6 py-10 md:py-14">
+
+    <!-- cargando -->
+    <div id="state-loading" class="text-center py-20">
+        <div class="inline-block w-10 h-10 border-4 border-sage-200 border-t-sage-600 rounded-full animate-spin"></div>
+        <p class="mt-4 text-sm text-sage-600 heading font-medium">Un momento…</p>
+    </div>
+
+    <!-- error -->
+    <div id="state-error" class="hidden text-center py-16 max-w-md mx-auto">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-rose-50 mb-4">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <h1 class="display text-2xl font-bold text-sage-900 mb-2">Este enlace no es válido</h1>
+        <p id="error-msg" class="text-sm text-sage-700 leading-relaxed">Escríbenos por Telegram y te enviamos uno nuevo.</p>
+    </div>
+
+    <!-- formulario -->
+    <div id="state-ready" class="hidden">
+        <div class="text-center mb-9">
+            <p class="heading text-xs font-semibold text-sand-500 uppercase tracking-[2px] mb-2">Escuela Cuid-Arte</p>
+            <h1 id="title" class="display text-3xl md:text-4xl font-bold text-sage-900">Cuéntanos tu experiencia</h1>
+            <p class="mt-3 text-sm text-sage-600 leading-relaxed max-w-lg mx-auto">Antes de despedirnos, nos ayudaría mucho saber cómo ha sido tu paso por la Escuela. Es muy cortito y nos sirve para mejorar. Gracias por tu sinceridad.</p>
+        </div>
+
+        <!-- 1. Motivo -->
+        <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-7 shadow-sm mb-5">
+            <h3 class="heading text-sm font-bold text-sage-800 mb-1">1 · ¿Cuál es el motivo principal por el que lo dejas?</h3>
+            <p class="text-xs text-sage-500 mb-4">Marca el que más se acerque.</p>
+            <div id="motivos" class="grid sm:grid-cols-2 gap-2.5">
+                <button type="button" class="opt text-left border border-sage-200 rounded-2xl px-4 py-3 text-sm text-sage-800 hover:border-sage-400" data-v="economico" role="radio" aria-checked="false">Motivo económico</button>
+                <button type="button" class="opt text-left border border-sage-200 rounded-2xl px-4 py-3 text-sm text-sage-800 hover:border-sage-400" data-v="tiempo" role="radio" aria-checked="false">Falta de tiempo</button>
+                <button type="button" class="opt text-left border border-sage-200 rounded-2xl px-4 py-3 text-sm text-sage-800 hover:border-sage-400" data-v="no_esperado" role="radio" aria-checked="false">No era lo que esperaba</button>
+                <button type="button" class="opt text-left border border-sage-200 rounded-2xl px-4 py-3 text-sm text-sage-800 hover:border-sage-400" data-v="mejoria" role="radio" aria-checked="false">Mejoría / alta médica</button>
+                <button type="button" class="opt text-left border border-sage-200 rounded-2xl px-4 py-3 text-sm text-sage-800 hover:border-sage-400" data-v="prioridades" role="radio" aria-checked="false">Cambio de prioridades</button>
+                <button type="button" class="opt text-left border border-sage-200 rounded-2xl px-4 py-3 text-sm text-sage-800 hover:border-sage-400" data-v="otro" role="radio" aria-checked="false">Otro motivo</button>
+            </div>
+            <input id="motivo_otro" type="text" placeholder="Cuéntanos cuál…" class="hidden mt-3 w-full border border-sage-200 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-sage-300 focus:border-sage-400 outline-none">
+        </div>
+
+        <!-- 2. Valoración -->
+        <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-7 shadow-sm mb-5">
+            <h3 class="heading text-sm font-bold text-sage-800 mb-1">2 · ¿Cómo valoras tu paso por la Escuela?</h3>
+            <p class="text-xs text-sage-500 mb-4">Del 1 (nada) al 10 (muchísimo).</p>
+            <div id="score" class="grid grid-cols-10 gap-1.5"></div>
+            <div class="flex justify-between text-[11px] text-sage-400 mt-2 px-0.5"><span>Nada</span><span>Muchísimo</span></div>
+        </div>
+
+        <!-- 3. Qué te llevas -->
+        <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-7 shadow-sm mb-5">
+            <h3 class="heading text-sm font-bold text-sage-800 mb-1">3 · ¿Qué te llevas de estos meses?</h3>
+            <p class="text-xs text-sage-500 mb-4">Lo que más valoras, lo que te ha servido.</p>
+            <textarea id="que_te_llevas" rows="3" class="w-full border border-sage-200 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-sage-300 focus:border-sage-400 outline-none resize-none" placeholder="Escribe con libertad…"></textarea>
+        </div>
+
+        <!-- 4. Qué mejorar -->
+        <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-7 shadow-sm mb-5">
+            <h3 class="heading text-sm font-bold text-sage-800 mb-1">4 · ¿Qué crees que deberíamos mejorar?</h3>
+            <p class="text-xs text-sage-500 mb-4">Con total sinceridad: es justo lo que nos ayuda a crecer.</p>
+            <textarea id="que_mejorar" rows="3" class="w-full border border-sage-200 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-sage-300 focus:border-sage-400 outline-none resize-none" placeholder="Lo que cambiarías o echaste en falta…"></textarea>
+        </div>
+
+        <!-- 5. Volvería -->
+        <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-7 shadow-sm mb-5">
+            <h3 class="heading text-sm font-bold text-sage-800 mb-4">5 · ¿Te gustaría volver más adelante?</h3>
+            <div id="volveria" class="grid grid-cols-3 gap-2.5">
+                <button type="button" class="opt border border-sage-200 rounded-2xl px-4 py-3 text-sm font-semibold text-sage-800 hover:border-sage-400" data-v="si" role="radio" aria-checked="false">Sí</button>
+                <button type="button" class="opt border border-sage-200 rounded-2xl px-4 py-3 text-sm font-semibold text-sage-800 hover:border-sage-400" data-v="quizas" role="radio" aria-checked="false">Quizás</button>
+                <button type="button" class="opt border border-sage-200 rounded-2xl px-4 py-3 text-sm font-semibold text-sage-800 hover:border-sage-400" data-v="no" role="radio" aria-checked="false">No</button>
+            </div>
+        </div>
+
+        <!-- Comentario libre -->
+        <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-7 shadow-sm mb-6">
+            <h3 class="heading text-sm font-bold text-sage-800 mb-1">¿Algo más que quieras decirnos? <span class="font-normal text-sage-400">(opcional)</span></h3>
+            <textarea id="comentarios" rows="2" class="mt-3 w-full border border-sage-200 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-sage-300 focus:border-sage-400 outline-none resize-none" placeholder=""></textarea>
+        </div>
+
+        <p id="form-error" class="hidden mb-4 text-xs text-rose-600 font-semibold text-center"></p>
+
+        <button id="submit-btn" type="button" class="w-full bg-sage-700 hover:bg-sage-800 disabled:opacity-50 text-white heading font-bold text-base px-6 py-4 rounded-2xl transition-all shadow-md hover:shadow-lg active:scale-[0.99] flex items-center justify-center gap-3">
+            Enviar mi opinión
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+        <p class="mt-3 text-center text-[11px] text-sage-500">Tu respuesta llega solo al equipo de la Escuela.</p>
+    </div>
+
+    <!-- gracias -->
+    <div id="state-thanks" class="hidden text-center py-16 max-w-md mx-auto">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-sage-100 mb-5">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#558055" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <h1 id="thanks-title" class="display text-2xl md:text-3xl font-bold text-sage-900 mb-3">Gracias de corazón</h1>
+        <p class="text-sm text-sage-700 leading-relaxed">Tu opinión nos ayuda a cuidar mejor a quien viene detrás. Aquí tienes la puerta siempre abierta. Cuídate mucho.</p>
+    </div>
+</main>
+
+<footer class="border-t border-sage-100 py-6 mt-10 text-center text-xs text-sage-500">
+    <p>&copy; 2026 NEIKO HEALTH, S.L. · Cuid-Arte · NIF B22928311 · RM Madrid, hoja M-865423</p>
+</footer>
+
+<script>
+(function () {
+    const SB_URL = "__SUPABASE_URL__";
+    const SB_KEY = "__SUPABASE_ANON_KEY__";
+    const $ = (id) => document.getElementById(id);
+    const token = new URLSearchParams(location.search).get('t');
+    const answers = { motivo:null, volveria:null, valoracion:null };
+
+    function showState(id) {
+        ['state-loading','state-error','state-ready','state-thanks'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+    }
+    function showError(msg) { if (msg) $('error-msg').textContent = msg; showState('state-error'); }
+
+    // grupos tipo radio (motivo, volveria)
+    function wireRadio(containerId, key, onChange) {
+        $(containerId).querySelectorAll('[role="radio"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                $(containerId).querySelectorAll('[role="radio"]').forEach(b => b.setAttribute('aria-checked','false'));
+                btn.setAttribute('aria-checked','true');
+                answers[key] = btn.dataset.v;
+                if (onChange) onChange(btn.dataset.v);
+            });
+        });
+    }
+
+    // escala 1-10
+    const score = $('score');
+    for (let i = 1; i <= 10; i++) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'scorebtn border border-sage-200 rounded-xl py-2.5 text-sm font-semibold text-sage-700 hover:border-sage-400';
+        b.textContent = i; b.dataset.v = i; b.setAttribute('role','radio'); b.setAttribute('aria-checked','false');
+        b.addEventListener('click', () => {
+            score.querySelectorAll('button').forEach(x => x.setAttribute('aria-checked','false'));
+            b.setAttribute('aria-checked','true'); answers.valoracion = i;
+        });
+        score.appendChild(b);
+    }
+
+    wireRadio('motivos','motivo',(v) => {
+        $('motivo_otro').classList.toggle('hidden', v !== 'otro');
+        if (v === 'otro') $('motivo_otro').focus();
+    });
+    wireRadio('volveria','volveria');
+
+    async function load() {
+        if (!token) return showError('Falta el código del enlace.');
+        try {
+            const res = await fetch(`${SB_URL}/functions/v1/submit-exit-survey?t=${encodeURIComponent(token)}`, {
+                headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+            });
+            const d = await res.json();
+            if (!res.ok || !d.ok) return showError('Este enlace no es válido.');
+            if (d.already_submitted) { $('thanks-title').textContent = 'Ya nos llegó tu opinión'; return showState('state-thanks'); }
+            if (d.first_name) $('title').textContent = `${d.first_name}, cuéntanos tu experiencia`;
+            showState('state-ready');
+        } catch (e) { showError('No se pudo conectar. Inténtalo de nuevo.'); }
+    }
+
+    $('submit-btn').addEventListener('click', async () => {
+        const err = $('form-error'); err.classList.add('hidden');
+        if (!answers.motivo) return fail('Cuéntanos el motivo principal (pregunta 1).');
+        if (answers.motivo === 'otro' && !$('motivo_otro').value.trim()) return fail('Escríbenos cuál es el otro motivo.');
+        if (!answers.valoracion) return fail('Marca tu valoración del 1 al 10 (pregunta 2).');
+        if (!answers.volveria) return fail('Dinos si te gustaría volver (pregunta 5).');
+
+        const btn = $('submit-btn'); btn.disabled = true;
+        btn.innerHTML = '<div class="w-6 h-6 border-4 border-white/40 border-t-white rounded-full animate-spin"></div> Enviando…';
+        try {
+            const res = await fetch(`${SB_URL}/functions/v1/submit-exit-survey`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+                body: JSON.stringify({
+                    token,
+                    motivo: answers.motivo,
+                    motivo_otro: $('motivo_otro').value.trim() || null,
+                    valoracion: answers.valoracion,
+                    que_te_llevas: $('que_te_llevas').value.trim() || null,
+                    que_mejorar: $('que_mejorar').value.trim() || null,
+                    volveria: answers.volveria,
+                    comentarios: $('comentarios').value.trim() || null,
+                    user_agent: navigator.userAgent,
+                }),
+            });
+            const d = await res.json();
+            if (!res.ok || !d.ok) { btn.disabled = false; btn.textContent = 'Enviar mi opinión'; return fail('No se pudo enviar. Inténtalo de nuevo.'); }
+            showState('state-thanks');
+        } catch (e) {
+            btn.disabled = false; btn.textContent = 'Enviar mi opinión';
+            fail('No se pudo conectar. Inténtalo de nuevo.');
+        }
+        function fail(m) { err.textContent = m; err.classList.remove('hidden'); }
+    });
+    function fail(m) { $('form-error').textContent = m; $('form-error').classList.remove('hidden'); }
+
+    load();
+})();
+</script>
+</body>
+</html>
