@@ -44,4 +44,11 @@
   s.async = true;
   s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
   document.head.appendChild(s);
+
+  // Umami — analítica sin cookies (no requiere consentimiento). Complementa a GA4.
+  var u = document.createElement('script');
+  u.defer = true;
+  u.src = 'https://monitorizacion-umami.pqtiji.easypanel.host/script.js';
+  u.setAttribute('data-website-id', 'b37da2c7-c8da-4abd-9713-60606427b38f');
+  document.head.appendChild(u);
 })();
