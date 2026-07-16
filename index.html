@@ -520,6 +520,9 @@
                         const structuredInterest = [admissionForm.timing, admissionForm.inversion].filter(Boolean).join(' · ') || 'No indicado';
                         // Reconstruye name desde los 3 campos separados (compatibilidad con sistemas existentes)
                         const fullName = [admissionForm.firstName, admissionForm.lastName1, admissionForm.lastName2].map(s => (s || '').trim()).filter(Boolean).join(' ') || admissionForm.name || "Sin nombre";
+                        // Atribución automática (UTMs + referrer capturados en analytics.js).
+                        // Complementa al "origen" autodeclarado, no lo sustituye.
+                        const attribution = (window.getLeadAttribution && window.getLeadAttribution()) || {};
                         const upsertData = {
                             email: admissionForm.email.toLowerCase().trim(),
                             name: fullName,
@@ -543,6 +546,14 @@
                             preocupacion_principal: admissionForm.preocupacion || null,
                             score: score,
                             status: autoStatus,
+                            utm_source: attribution.utm_source || null,
+                            utm_medium: attribution.utm_medium || null,
+                            utm_campaign: attribution.utm_campaign || null,
+                            utm_content: attribution.utm_content || null,
+                            utm_term: attribution.utm_term || null,
+                            referrer: attribution.referrer || null,
+                            landing_path: attribution.landing_path || null,
+                            canal_detectado: attribution.canal_detectado || 'directo',
                         };
                         // RPC SECURITY DEFINER: evita exponer UPDATE/SELECT a anon en la tabla
                         const { data, error } = await supabase
