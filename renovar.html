@@ -76,6 +76,21 @@
         <p id="done-msg" class="text-sm text-sage-700 leading-relaxed">Tu contrato está firmado y tu pago ya estaba registrado. Te hemos enviado una copia por email.</p>
     </div>
 
+    <!-- firmado: paso al pago. El salto automatico puede no ocurrir (visores in-app,
+         navegadores que ignoran location.href), asi que el enlace SIEMPRE queda visible. -->
+    <div id="state-pay" class="hidden text-center py-16 max-w-md mx-auto">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-sage-50 mb-4">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#558055" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+        </div>
+        <h1 class="display text-2xl font-bold text-sage-900 mb-2">Contrato firmado</h1>
+        <p class="text-sm text-sage-700 leading-relaxed mb-6">Ya no tienes que firmar nada más. Solo queda completar el pago.</p>
+        <a id="pay-link" href="#" class="w-full bg-sage-700 hover:bg-sage-800 text-white heading font-bold text-base px-6 py-4 rounded-2xl transition-all shadow-md hover:shadow-lg active:scale-[0.99] flex items-center justify-center gap-3">
+            Ir al pago
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        <p class="text-xs text-sage-600 leading-relaxed mt-4">Si no se abre solo, pulsa el botón. Puedes volver a este enlace cuando quieras: tu firma ya está guardada.</p>
+    </div>
+
     <!-- listo -->
     <div id="state-ready" class="hidden">
         <div class="text-center mb-8">
@@ -142,10 +157,21 @@
     const token = new URLSearchParams(location.search).get('t');
 
     function showState(id) {
-        ['state-loading','state-error','state-ready','state-done'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+        ['state-loading','state-error','state-ready','state-done','state-pay'].forEach(s => $(s).classList.toggle('hidden', s !== id));
     }
     function showError(msg) { if (msg) $('error-msg').textContent = msg; showState('state-error'); }
     function showDone(msg) { if (msg) $('done-msg').textContent = msg; showState('state-done'); }
+
+    // Paso al pago: primero se PINTA el boton con el enlace real y despues se intenta el
+    // salto automatico. Si el navegador se come el location.href (paso el 28-jul-2026: una
+    // alumna se quedo en la pantalla de firma y firmo tres veces creyendo que fallaba ella),
+    // la pantalla ya tiene el enlace visible y puede continuar pulsando.
+    function goToPayment(url) {
+        if (!url) return fail('No se pudo obtener el enlace de pago. Escríbenos por Telegram.');
+        $('pay-link').href = url;
+        showState('state-pay');
+        setTimeout(() => { try { location.href = url; } catch (e) { /* el boton sigue ahi */ } }, 400);
+    }
     let alreadyPaid = false;
 
     // ── Canvas de firma ──
@@ -196,7 +222,7 @@
             if (!res.ok || !d.ok) return showError(d.error === 'no_encontrada' ? 'Este enlace no es válido.' : 'No se pudo cargar tu renovación.');
             if (d.expired) return showError('Este enlace ha caducado. Pídenos uno nuevo por Telegram.');
             if (d.already_signed && d.already_paid) return showDone('Tu renovación ya está completa: contrato firmado y pago registrado. No tienes que hacer nada más.');
-            if (d.already_signed && d.payment_url) { location.href = d.payment_url; return; }
+            if (d.already_signed && d.payment_url) return goToPayment(d.payment_url);
             alreadyPaid = !!d.already_paid;
             render(d);
             if (alreadyPaid) {
@@ -235,7 +261,7 @@
             const d = await res.json();
             if (res.ok && d.ok && d.already_paid) { showDone('Contrato firmado. Tu pago ya estaba registrado, así que no tienes que hacer nada más. Te hemos enviado una copia por email.'); return; }
             if (!res.ok || !d.payment_url) { btn.disabled = false; btn.textContent = alreadyPaid ? 'Firmar el documento' : 'Firmar y continuar al pago'; return fail(d.error || 'No se pudo procesar la firma.'); }
-            location.href = d.payment_url;
+            goToPayment(d.payment_url);
         } catch (e) {
             btn.disabled = false; btn.textContent = alreadyPaid ? 'Firmar el documento' : 'Firmar y continuar al pago';
             fail('No se pudo conectar. Inténtalo de nuevo.');
