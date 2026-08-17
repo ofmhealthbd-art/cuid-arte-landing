@@ -4,11 +4,14 @@
     <script src="/analytics.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>I Encuentro Cuid-Arte | 9-10 Mayo 2026 | Hinojares, Jaén</title>
-    <!-- noindex mientras NO haya un encuentro presencial vigente (evento de may-2026 ya pasado).
-         Al anunciar uno nuevo: quitar esta línea, actualizar fechas/contenido, añadir Event schema y re-incluir en sitemap.xml. -->
+    <title>II Encuentro Cuid-Arte | 25-27 Septiembre 2026 | Hinojares, Jaén</title>
+    <meta name="description" content="Tres días para cuidarte, aprender y volver a lo esencial. Encuentro de bienestar oncológico en la Sierra de Cazorla con la Dra. Odile Fernández. 25-27 de septiembre de 2026.">
+    <link rel="canonical" href="https://escuelacuidarte.com/encuentro.html">
+
+    <!-- ⏸ EN REVISIÓN (17-ago-2026): la URL funciona para quien la tenga, pero no se indexa.
+         AL APROBAR: borrar esta línea, volver a incluir encuentro.html en sitemap.xml y poner
+         ANUNCIO_ENCUENTRO_VISIBLE = true en index.html. Las tres cosas van juntas. -->
     <meta name="robots" content="noindex,follow">
-    <meta name="description" content="Un fin de semana para reconectar contigo, con tu vida. Retiro de bienestar oncológico en plena naturaleza con la Dra. Odile Fernández.">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -36,6 +39,46 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Structured data: evento con fecha, lugar y precios -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": "II Encuentro Cuid-Arte",
+      "description": "Tres días para cuidarte, aprender y volver a lo esencial: nutrición anticáncer, gestión emocional, senderismo, yoga, entrenamiento adaptado y una experiencia con caballos, en la Sierra de Cazorla.",
+      "startDate": "2026-09-25T17:00:00+02:00",
+      "endDate": "2026-09-27T15:30:00+02:00",
+      "eventStatus": "https://schema.org/EventScheduled",
+      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+      "url": "https://escuelacuidarte.com/encuentro.html",
+      "location": {
+        "@type": "Place",
+        "name": "Hotel Rural Valle del Turrilla",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Ctra. de Huesa, C. Veguetas, s/n",
+          "addressLocality": "Hinojares",
+          "addressRegion": "Jaén",
+          "postalCode": "23486",
+          "addressCountry": "ES"
+        }
+      },
+      "organizer": {
+        "@type": "Organization",
+        "name": "Escuela Cuid-Arte",
+        "url": "https://escuelacuidarte.com"
+      },
+      "performer": { "@type": "Person", "name": "Dra. Odile Fernández" },
+      "maximumAttendeeCapacity": 25,
+      "offers": [
+        { "@type": "Offer", "name": "Habitación doble compartida", "price": "300", "priceCurrency": "EUR", "availability": "https://schema.org/InStock", "url": "https://escuelacuidarte.com/encuentro.html#registro", "validFrom": "2026-08-18T00:00:00+02:00" },
+        { "@type": "Offer", "name": "Habitación individual", "price": "370", "priceCurrency": "EUR", "availability": "https://schema.org/InStock", "url": "https://escuelacuidarte.com/encuentro.html#registro", "validFrom": "2026-08-18T00:00:00+02:00" },
+        { "@type": "Offer", "name": "Actividades y comidas sin alojamiento", "price": "150", "priceCurrency": "EUR", "availability": "https://schema.org/LimitedAvailability", "url": "https://escuelacuidarte.com/encuentro.html#registro", "validFrom": "2026-08-18T00:00:00+02:00" }
+      ]
+    }
+    </script>
+
     <style>
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
         @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
@@ -68,57 +111,141 @@
         const isConfigured = SB_URL.startsWith('http');
         const supabase = isConfigured ? window.supabase.createClient(SB_URL, SB_KEY) : null;
 
-        const STRIPE_LINKS = {
-            student_doble: 'https://buy.stripe.com/eVq8wQeXC7B53eG2RH8Zq09',
-            student_individual: 'https://buy.stripe.com/7sY4gA3eUf3x3eG63T8Zq0a',
-            external_doble: 'https://buy.stripe.com/cNi3cw9DidZt2aC77X8Zq0b',
-            external_individual: 'https://buy.stripe.com/8x2fZi02I8F93eG63T8Zq0c',
-            actividades: '', // Pendiente enlace Stripe
-            actividades_comida: '', // Pendiente enlace Stripe + precio
+        const EVENT_SLUG = 'encuentro-cuidarte-2026-09';
+
+        // El alta y el cobro los resuelve la funcion `encuentro-inscribir` en el servidor:
+        // ella decide el precio, si eres alumna y si quedan plazas. Esta tabla es solo para
+        // PINTAR precios en pantalla; si algun dia difiere, manda la del servidor.
+        const PRICES = {
+            student: { doble: 250, individual: 320 },
+            external: { doble: 300, individual: 370 },
+            sin_alojamiento: 150,
+            horse: 27,
         };
 
-        const PRICES = {
-            student: { doble: 150, individual: 190 },
-            external: { doble: 200, individual: 250 },
-            daypass: { actividades: 60, actividades_comida: 0 },
-        };
+        const TOTAL_CAMAS = 20;
+        const TOTAL_SIN_ALOJAMIENTO = 5;
 
         const ACTIVITIES = [
-            { icon: '🏡', title: 'Alojamiento', desc: 'En plena naturaleza, con pensión completa saludable' },
-            { icon: '🥾', title: 'Senderismo', desc: 'Rutas para llenar tus pulmones con aire puro' },
-            { icon: '🫒', title: 'Cata de AOVE', desc: 'Saborea la esencia de nuestra tierra' },
-            { icon: '🧘‍♀️', title: 'Yoga', desc: 'Respira, estira, activa y reconecta contigo' },
-            { icon: '💪', title: 'Entrenamiento', desc: 'Fuerza y bienestar para tu día a día' },
-            { icon: '🤍', title: 'Tribu de Mujeres', desc: 'Compartir, conectar y sostenernos' },
+            { icon: '🏡', title: 'Alojamiento', desc: 'Dos noches en plena naturaleza, en la Sierra de Cazorla' },
+            { icon: '🍽️', title: 'Pensión completa', desc: 'De la cena del viernes a la comida del domingo' },
+            { icon: '🐴', title: 'Caballos', desc: 'Contacto con la manada, sin necesidad de montar' },
+            { icon: '🥾', title: 'Senderismo', desc: 'Rutas adaptadas para llenar los pulmones de aire puro' },
+            { icon: '🥗', title: 'Nutrición anticáncer', desc: 'Formación práctica con la Dra. Odile Fernández' },
+            { icon: '🤍', title: 'Gestión emocional', desc: 'Un espacio para lo que casi nunca se dice en voz alta' },
+            { icon: '🧘‍♀️', title: 'Yoga y meditación', desc: 'Respirar, estirar y reconectar con el cuerpo' },
+            { icon: '💪', title: 'Entrenamiento adaptado', desc: 'Fuerza y masa muscular, clave en el pronóstico' },
         ];
 
+        const FORM_VACIO = {
+            first_name: '', last_name_1: '', last_name_2: '', email: '', phone: '', phonePrefix: '+34',
+            experience_type: '', is_student: '', room_type: '', companion_name: '', horse_ride: false,
+            age_range: '', province: '', relation_to_cancer: '',
+            cancer_type: '', cancer_stage: '', in_active_treatment: false,
+            how_found: '', first_event: '', motivation: '',
+            dietary_needs: '', medical_notes: '', needs_transport: false,
+            accepts_privacy: false, accepts_marketing: false,
+            payment_method: 'card',
+        };
+
+        // Borrador local para quien deja el formulario a medias y vuelve mas tarde.
+        // NO se guardan los campos clinicos (relacion con el cancer, tipo, estadio, tratamiento,
+        // notas medicas): el movil puede ser compartido y ese dato no debe quedar escrito ahi.
+        // Tampoco los consentimientos: se dan en el momento, no se heredan de otra sesion.
+        const CLAVE_BORRADOR = `encuentro_borrador_${EVENT_SLUG}`;
+        const CAMPOS_NO_GUARDADOS = ['relation_to_cancer', 'cancer_type', 'cancer_stage', 'in_active_treatment', 'medical_notes', 'accepts_privacy', 'accepts_marketing'];
+        const CADUCIDAD_BORRADOR = 30 * 24 * 60 * 60 * 1000;
+
+        // Un borrador solo cuenta si tiene algo escrito de verdad: el prefijo telefonico
+        // viene por defecto y no significa que nadie haya empezado nada.
+        const borradorTieneContenido = (f) => !!f && Object.entries(f).some(([k, v]) =>
+            k !== 'phonePrefix' && v !== '' && v !== false && v !== null && v !== undefined);
+
+        const leerBorrador = () => {
+            try {
+                const raw = localStorage.getItem(CLAVE_BORRADOR);
+                if (!raw) return null;
+                const b = JSON.parse(raw);
+                if (!b || !b.guardado || (Date.now() - b.guardado) > CADUCIDAD_BORRADOR || !borradorTieneContenido(b.form)) {
+                    localStorage.removeItem(CLAVE_BORRADOR);
+                    return null;
+                }
+                return b.form;
+            } catch (e) { return null; }
+        };
+
+        const borradorInicial = leerBorrador();
+
         function App() {
-            const [form, setForm] = useState({
-                first_name: '', last_name_1: '', last_name_2: '', email: '', phone: '', phonePrefix: '+34',
-                experience_type: '', is_student: '', room_type: '', companion_name: '',
-                age_range: '', province: '', relation_to_cancer: '',
-                cancer_type: '', cancer_stage: '', in_active_treatment: false,
-                how_found: '', first_event: '', motivation: '',
-                dietary_needs: '', medical_notes: '', needs_transport: false,
-                accepts_privacy: false, accepts_marketing: false,
-            });
+            const [form, setForm] = useState({ ...FORM_VACIO, ...(borradorInicial || {}) });
+            const [hayBorrador, setHayBorrador] = useState(!!borradorInicial);
             const [step, setStep] = useState(1);
             const [verifying, setVerifying] = useState(false);
             const [verified, setVerified] = useState(null);
             const [submitting, setSubmitting] = useState(false);
             const [errors, setErrors] = useState({});
-            const [plazasRestantes, setPlazasRestantes] = useState(20);
+            const [camasRestantes, setCamasRestantes] = useState(null);
+            const [sinAlojRestantes, setSinAlojRestantes] = useState(null);
+            const [yaInscrita, setYaInscrita] = useState(null);
+            // El banco devuelve a /encuentro.html?pago=ko cuando el cobro no sale.
+            const [pagoFallido] = useState(() => new URLSearchParams(location.search).get('pago') === 'ko');
             const [openFaq, setOpenFaq] = useState(null);
-            const TOTAL_PLAZAS = 20;
-
-            useEffect(() => {
-                if (!supabase) return;
-                supabase.from('event_registrations').select('id', { count: 'exact', head: true }).eq('event_slug', 'encuentro-cuidarte-2026').then(({ count }) => {
-                    setPlazasRestantes(Math.max(0, TOTAL_PLAZAS - (count || 0)));
-                });
-            }, []);
             const [toast, setToast] = useState({ msg: '', visible: false, type: 'success' });
             const [showCookies, setShowCookies] = useState(!localStorage.getItem('cookies_accepted'));
+
+            // Disponibilidad. El rol anon NO puede leer la tabla (la RLS solo permite INSERT),
+            // asi que va por RPC: la funcion devuelve contadores agregados, no filas.
+            useEffect(() => {
+                if (!supabase) return;
+                supabase.rpc('fn_encuentro_estado', { p_event_slug: EVENT_SLUG })
+                    .then(({ data, error }) => {
+                        if (error || !data) return;
+                        setCamasRestantes(Math.max(0, TOTAL_CAMAS - (data.camas_ocupadas || 0)));
+                        setSinAlojRestantes(Math.max(0, TOTAL_SIN_ALOJAMIENTO - (data.sin_alojamiento_ocupadas || 0)));
+                    });
+            }, []);
+
+            // Aviso de inscripcion ya existente, en cuanto escribe el email:
+            // enterarse al final, despues de rellenar los dos pasos, es la peor forma de saberlo.
+            const comprobarInscripcionPrevia = async (email) => {
+                if (!supabase) return;
+                const limpio = (email || '').toLowerCase().trim();
+                if (!limpio.includes('@') || limpio.length < 5) return;
+                const { data, error } = await supabase.rpc('fn_encuentro_estado', {
+                    p_event_slug: EVENT_SLUG,
+                    p_email: limpio,
+                });
+                if (error || !data) return;
+                setYaInscrita(data.ya_inscrita ? { estado: data.estado, reserva: data.reserva } : null);
+            };
+
+
+            // Guardado continuo del borrador mientras rellena.
+            useEffect(() => {
+                if (step === 3) return;
+                try {
+                    const aGuardar = { ...form };
+                    CAMPOS_NO_GUARDADOS.forEach(c => delete aGuardar[c]);
+                    if (borradorTieneContenido(aGuardar)) {
+                        localStorage.setItem(CLAVE_BORRADOR, JSON.stringify({ guardado: Date.now(), form: aGuardar }));
+                    } else {
+                        localStorage.removeItem(CLAVE_BORRADOR);
+                    }
+                } catch (e) { /* modo privado o almacenamiento lleno: seguir sin borrador */ }
+            }, [form, step]);
+
+            const olvidarBorrador = () => {
+                try { localStorage.removeItem(CLAVE_BORRADOR); } catch (e) {}
+                setHayBorrador(false);
+            };
+
+            const empezarDeCero = () => {
+                setForm({ ...FORM_VACIO });
+                setErrors({});
+                setVerified(null);
+                setYaInscrita(null);
+                olvidarBorrador();
+            };
 
             const showToast = (msg, type = 'success') => {
                 setToast({ msg, visible: true, type });
@@ -126,6 +253,7 @@
             };
 
             const verifyStudent = async () => {
+                if (!supabase) return;
                 if (!form.email || !form.email.includes('@')) return;
                 setVerifying(true);
                 try {
@@ -147,24 +275,60 @@
                 finally { setVerifying(false); }
             };
 
-            const getPrice = () => {
-                if (form.experience_type === 'daypass') return PRICES.daypass.actividades;
-                if (form.experience_type === 'daypass_comida') return PRICES.daypass.actividades_comida;
+            const needsRoom = form.experience_type === 'alojamiento';
+            const isSinAlojamiento = form.experience_type === 'sin_alojamiento';
+            const showsCancerFields = form.relation_to_cancer === 'paciente' || form.relation_to_cancer === 'superviviente';
+
+            const getBasePrice = () => {
+                if (isSinAlojamiento) return PRICES.sin_alojamiento;
                 const tier = form.is_student === 'yes' ? 'student' : 'external';
                 return PRICES[tier]?.[form.room_type] || 0;
             };
+            const getPrice = () => getBasePrice() + (form.horse_ride ? PRICES.horse : 0);
 
-            const getStripeLink = () => {
-                if (form.experience_type === 'daypass') return STRIPE_LINKS.actividades;
-                if (form.experience_type === 'daypass_comida') return STRIPE_LINKS.actividades_comida;
-                const tier = form.is_student === 'yes' ? 'student' : 'external';
-                return STRIPE_LINKS[`${tier}_${form.room_type}`] || '';
+            // Salto a la pasarela del banco: Redsys exige un POST con los parametros firmados.
+            const irAlBanco = (redsys) => {
+                const f = document.createElement('form');
+                f.method = 'POST';
+                f.action = redsys.url;
+                [['Ds_SignatureVersion', redsys.Ds_SignatureVersion],
+                 ['Ds_MerchantParameters', redsys.Ds_MerchantParameters],
+                 ['Ds_Signature', redsys.Ds_Signature]].forEach(([n, v]) => {
+                    const i = document.createElement('input');
+                    i.type = 'hidden'; i.name = n; i.value = v;
+                    f.appendChild(i);
+                });
+                document.body.appendChild(f);
+                f.submit();
             };
 
-            const isDaypass = form.experience_type === 'daypass' || form.experience_type === 'daypass_comida';
-            const needsRoom = form.experience_type === 'alojamiento';
-
-            const showsCancerFields = form.relation_to_cancer === 'paciente' || form.relation_to_cancer === 'superviviente';
+            // Retomar el pago de una inscripcion que quedo a medias. El importe lo pone la
+            // inscripcion guardada, no esta pantalla.
+            const retomarPago = async (registrationId, metodo) => {
+                if (!supabase) return;
+                setSubmitting(true);
+                try {
+                    const { data, error } = await supabase.functions.invoke('redsys-create-payment', {
+                        body: {
+                            payment_method: metodo || 'card',
+                            event_registration_id: registrationId,
+                            product_type: 'encuentro',
+                            description: 'II Encuentro Cuid-Arte',
+                            customer_email: form.email.toLowerCase().trim() || null,
+                        },
+                    });
+                    if (error || !data?.url) {
+                        showToast('No hemos podido abrir el pago. Escríbenos por WhatsApp.', 'error');
+                        setSubmitting(false);
+                        return;
+                    }
+                    irAlBanco(data);
+                } catch (e) {
+                    console.error(e);
+                    showToast('No hemos podido abrir el pago. Escríbenos por WhatsApp.', 'error');
+                    setSubmitting(false);
+                }
+            };
 
             const validateStep1 = () => {
                 const e = {};
@@ -185,93 +349,158 @@
 
             const handleSubmit = async () => {
                 if (!form.accepts_privacy) { showToast('Debes aceptar la política de privacidad', 'error'); return; }
+                if (!supabase) { showToast('Configuración incompleta. Escríbenos por WhatsApp.', 'error'); return; }
                 setSubmitting(true);
                 try {
-                    const fullPhone = form.phone ? `${form.phonePrefix} ${form.phone}`.trim() : null;
-                    const insertData = {
-                        event_slug: 'encuentro-cuidarte-2026',
-                        full_name: `${form.first_name} ${form.last_name_1} ${form.last_name_2}`.trim(),
-                        first_name: form.first_name,
-                        last_name_1: form.last_name_1,
-                        last_name_2: form.last_name_2,
-                        email: form.email.toLowerCase().trim(),
-                        phone: fullPhone,
-                        experience_type: form.experience_type,
-                        is_student: needsRoom ? form.is_student === 'yes' : false,
-                        room_type: needsRoom ? form.room_type : null,
-                        companion_name: form.companion_name || null,
-                        age_range: form.age_range || null,
-                        province: form.province || null,
-                        relation_to_cancer: form.relation_to_cancer || null,
-                        cancer_type: showsCancerFields ? (form.cancer_type || null) : null,
-                        cancer_stage: showsCancerFields ? (form.cancer_stage || null) : null,
-                        in_active_treatment: showsCancerFields ? form.in_active_treatment : null,
-                        how_found: form.how_found || null,
-                        first_event: form.first_event === 'yes',
-                        motivation: form.motivation || null,
-                        dietary_needs: form.dietary_needs || null,
-                        medical_notes: form.medical_notes || null,
-                        needs_transport: form.needs_transport,
-                        accepts_privacy: true,
-                        accepts_conditions: true,
-                        accepts_marketing: form.accepts_marketing,
-                        amount_paid: getPrice(),
-                        status: 'pending',
-                    };
+                    // El servidor decide precio, condicion de alumna y plazas. Aqui solo se dice
+                    // QUE se quiere: si lo decidiera esta pantalla, cualquiera podria cambiarlo.
+                    const { data, error } = await supabase.functions.invoke('encuentro-inscribir', {
+                        body: {
+                            first_name: form.first_name,
+                            last_name_1: form.last_name_1,
+                            last_name_2: form.last_name_2,
+                            email: form.email.toLowerCase().trim(),
+                            phone: form.phone ? `${form.phonePrefix} ${form.phone}`.trim() : null,
+                            experience_type: form.experience_type,
+                            room_type: needsRoom ? form.room_type : null,
+                            horse_ride: form.horse_ride,
+                            companion_name: form.companion_name || null,
+                            age_range: form.age_range || null,
+                            province: form.province || null,
+                            relation_to_cancer: form.relation_to_cancer || null,
+                            cancer_type: showsCancerFields ? (form.cancer_type || null) : null,
+                            cancer_stage: showsCancerFields ? (form.cancer_stage || null) : null,
+                            in_active_treatment: showsCancerFields ? form.in_active_treatment : null,
+                            how_found: form.how_found || null,
+                            first_event: form.first_event === 'yes',
+                            motivation: form.motivation || null,
+                            dietary_needs: form.dietary_needs || null,
+                            medical_notes: form.medical_notes || null,
+                            needs_transport: form.needs_transport,
+                            accepts_privacy: true,
+                            accepts_marketing: form.accepts_marketing,
+                            payment_method: form.payment_method,
+                        },
+                    });
 
-                    if (supabase) {
-                        const { error } = await supabase.from('event_registrations').insert(insertData);
-                        if (error) {
-                            if (error.code === '23505') showToast('Ya existe un registro con este email.', 'error');
-                            else showToast('Error al guardar. Inténtalo de nuevo.', 'error');
-                            setSubmitting(false);
-                            return;
+                    // functions.invoke devuelve error para cualquier respuesta que no sea 2xx:
+                    // hay que leer el cuerpo para saber si es "ya inscrita", "sin plazas" u otra cosa.
+                    if (error) {
+                        let detalle = null;
+                        try { detalle = await error.context?.json(); } catch (e) { /* sin cuerpo legible */ }
+                        if (detalle?.error === 'ya_inscrita') {
+                            setYaInscrita({ estado: detalle.pagada ? 'paid' : 'pending', reserva: { importe: detalle.importe }, registration_id: detalle.registration_id });
+                            setStep(1);
+                            showToast('Ya tienes una reserva con este email', 'info');
+                        } else if (detalle?.error === 'sin_plazas_alojamiento' || detalle?.error === 'sin_plazas_sin_alojamiento') {
+                            showToast('Se han agotado las plazas de esa modalidad mientras rellenabas. Escríbenos por WhatsApp.', 'error');
+                        } else if (detalle?.error === 'inscripcion_guardada_sin_pago') {
+                            olvidarBorrador();
+                            setStep(3);
+                        } else {
+                            showToast('No hemos podido completar la reserva. Escríbenos por WhatsApp.', 'error');
                         }
+                        setSubmitting(false);
+                        return;
                     }
 
-                    const stripeLink = getStripeLink();
-                    if (stripeLink) window.location.href = stripeLink;
-                    else showToast('Error con el enlace de pago. Contacta con nosotros.', 'error');
+                    olvidarBorrador();
+                    if (data?.redsys?.url) irAlBanco(data.redsys);
+                    else setStep(3);
                 } catch (e) {
                     console.error(e);
-                    showToast('Error inesperado.', 'error');
+                    showToast('Error inesperado. Escríbenos por WhatsApp.', 'error');
+                    setSubmitting(false);
                 }
-                finally { setSubmitting(false); }
             };
 
             const inputClass = (field) => `w-full px-4 py-3.5 rounded-2xl border ${errors[field] ? 'border-red-300 bg-red-50/30' : 'border-sage-200/60'} bg-white/80 backdrop-blur-sm focus:bg-white focus:ring-2 focus:ring-sage-400/30 focus:border-sage-400 outline-none text-sm transition-all`;
             const selectClass = (field) => inputClass(field);
             const labelClass = 'text-[11px] font-heading font-semibold text-sage-600 uppercase tracking-[1.5px]';
 
+            // Los grupos de botones (alumna, habitacion) no pintaban el error: el formulario
+            // se negaba a avanzar sin decir donde estaba el problema.
+            const groupBorder = (field, selected) => selected
+                ? 'border-sage-500 bg-sage-50 text-sage-700'
+                : errors[field] ? 'border-red-300 bg-red-50/30 text-sage-400' : 'border-sage-200/60 text-sage-400 hover:border-sage-300';
+            const FieldError = ({ field, children }) => errors[field]
+                ? <p className="text-xs text-red-400 mt-1">{children}</p>
+                : null;
+
             const FAQS = [
-                { q: '¿Qué incluye el precio?', a: 'Alojamiento completo (1 noche), pensión completa con comida saludable, todas las actividades del programa y acompañamiento del equipo Cuid-Arte durante todo el fin de semana.' },
-                { q: '¿Puedo ir sola?', a: 'Por supuesto. La mayoría de asistentes vienen solas. Es una oportunidad perfecta para conectar con otras personas. Si eliges habitación doble te asignaremos una compañera.' },
-                { q: '¿Se adapta si tengo movilidad reducida?', a: 'Sí, nos adaptamos a tus necesidades. Indícalo en el formulario de inscripción y lo tendremos en cuenta.' },
-                { q: '¿Qué tengo que llevar?', a: 'Ropa cómoda, calzado de senderismo, bañador (hay piscina) y muchas ganas de cuidarte. Del resto nos encargamos nosotros.' },
-                { q: '¿Puedo llevar acompañante que no sea alumna?', a: 'Sí, hay plazas para personas externas a un precio diferente. Familiares y cuidadores también son bienvenidos.' },
-                { q: '¿Puedo cancelar?', a: 'Sí, hasta 15 días antes del evento con reembolso completo. Contacta con nosotros por WhatsApp.' },
+                { q: '¿Qué incluye el precio?', a: 'Dos noches de alojamiento, pensión completa desde la cena del viernes hasta la comida del domingo, todas las actividades del programa —incluida la sesión con caballos— y el acompañamiento del equipo Cuid-Arte durante los tres días. El paseo a caballo es lo único aparte (+27 €).' },
+                { q: '¿Tengo que montar a caballo?', a: 'No. La sesión con caballos es de tierra: entrar en la pista con la manada, conocerlos, aprender a leer su lenguaje corporal y manejarlos en la cuadra. Eso va incluido para todas y no requiere montar. El paseo a caballo de después es opcional, cuesta 27 € y lo lleva una empresa de turismo activo con seguro y material propio. Tú decides si te apetece montar o prefieres quedarte con los pies en el suelo.' },
+                { q: '¿Puedo venir sin alojarme?', a: 'Sí. Hay una modalidad de 150 € que incluye todas las actividades y las comidas (cena del viernes, comida y cena del sábado y comida del domingo), sin alojamiento ni desayunos. Son solo 5 plazas y se cierran 10 días antes del encuentro, porque hay que dar al hotel el número de comensales.' },
+                { q: '¿Puedo ir sola?', a: 'Por supuesto. La mayoría viene sola: es una de las mejores formas de conocer a las demás. Si eliges habitación doble te asignamos compañera.' },
+                { q: '¿Qué tengo que llevar?', a: 'Ropa cómoda, calzado de senderismo y calzado cerrado para la sesión con caballos (no se entra a la pista con sandalias). Lleva también algo de abrigo: a finales de septiembre las mañanas y las noches en la sierra refrescan bastante, aunque el día sea caluroso.' },
+                { q: '¿Se adapta si tengo movilidad reducida?', a: 'Sí. El hotel está preparado para personas con discapacidad, y las actividades están pensadas para adaptarse: hay alternativa para cada bloque. Indícalo en el formulario y lo preparamos contigo antes de que llegues.' },
+                { q: '¿A qué hora tengo que dejar la habitación el domingo?', a: 'No te preocupes por eso: aunque el hotel tiene su salida a las 12:00, lo tenemos hablado con ellos y el grupo se queda hasta después de comer. El domingo puedes estar en el taller y en la comida sin ir mirando el reloj ni bajar la maleta a media mañana.' },
+                { q: '¿Puedo llevar a mi perro?', a: 'El hotel no admite mascotas, así que esta vez no. Si eso te complica venir, escríbenos y buscamos una solución.' },
+                { q: '¿Puedo llevar acompañante que no sea alumna?', a: 'Sí. Hay plazas a precio general para quienes no pertenecen a la Escuela. Familiares, parejas y cuidadores son bienvenidos.' },
+                { q: '¿Puedo cancelar?', a: 'Hasta 15 días antes te devolvemos el importe completo. Entre 15 y 7 días antes, el 50%. A menos de 7 días no hay devolución, pero puedes ceder tu plaza a otra persona. Y si no puedes venir por un motivo médico —un ingreso, un cambio de ciclo, una complicación—, te devolvemos el importe íntegro o te guardamos la plaza para el siguiente encuentro. Escríbenos por WhatsApp y lo resolvemos.' },
             ];
+
+            const DIA_VIERNES = [
+                { t: '17:00', title: 'Llegada y acomodación', desc: 'Recepción escalonada, sin prisa' },
+                { t: '19:30', title: 'Círculo de bienvenida', desc: 'Presentarnos, contar qué nos trae aquí y hacer grupo' },
+                { t: '21:00', title: 'Cena de bienvenida', desc: null },
+                { t: '22:30', title: 'El cielo de Hinojares', desc: 'Opcional: aquí no hay contaminación lumínica' },
+            ];
+
+            const DIA_SABADO = [
+                { t: '08:00', title: 'Yoga y respiración consciente', desc: 'Opcional, al amanecer' },
+                { t: '09:00', title: 'Desayuno', desc: null },
+                { t: '10:00', title: 'Senderismo adaptado', desc: 'A primera hora, con la fresca. Ritmo y distancia adaptados' },
+                { t: '14:00', title: 'Comida', desc: null },
+                { t: '15:45', title: 'Formación: alimentación anticáncer', desc: 'Claves prácticas basadas en evidencia, con la Dra. Odile' },
+                { t: '17:30', title: 'Experiencia con caballos', desc: 'La pista está a dos minutos: vamos andando' },
+                { t: '21:00', title: 'Cena', desc: null },
+                { t: '22:30', title: 'Firma de libros con la Dra. Odile', desc: 'De sobremesa, sin formalidades' },
+            ];
+
+            const DIA_DOMINGO = [
+                { t: '08:30', title: 'Meditación y yoga suave', desc: 'Opcional' },
+                { t: '09:30', title: 'Desayuno', desc: null },
+                { t: '10:30', title: 'Entrenamiento funcional adaptado', desc: 'Con José Pedro. Fuerza y masa muscular: de lo que más influye en el pronóstico' },
+                { t: '11:30', title: 'Taller de gestión emocional', desc: 'Con Nathalie, nuestra psicóloga. El espacio para lo que cuesta decir en voz alta' },
+                { t: '13:15', title: 'Círculo de cierre', desc: 'Recoger lo aprendido y despedirnos' },
+                { t: '14:00', title: 'Comida de despedida', desc: null },
+                { t: '15:30', title: 'Salida', desc: null },
+            ];
+
+            const Timeline = ({ items }) => (
+                <div className="p-7 space-y-5">
+                    {items.map((item, i) => (
+                        <div key={i} className="flex gap-4">
+                            <div className="w-14 flex-shrink-0 text-right">
+                                <span className="font-heading font-bold text-sand-500 text-sm">{item.t}</span>
+                            </div>
+                            <div className="flex-1 border-l-2 border-sage-100 pl-4">
+                                <p className="font-heading font-semibold text-sage-800 text-sm">{item.title}</p>
+                                {item.desc && <p className="text-sage-500 text-xs mt-0.5">{item.desc}</p>}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
 
             return (
                 <div className="min-h-screen">
 
-                    {/* ═══ HERO — EDITORIAL MAGAZINE COVER ═══ */}
+                    {/* ═══ HERO ═══ */}
                     <section className="relative h-screen overflow-hidden">
-                        {/* Full-bleed photo */}
                         <div className="absolute inset-0 reveal-photo">
-                            <img src="https://draodilefernandez.com/wp-content/uploads/2023/11/Odile-Fernandez-01-copy-Javier-Ocana-scaled.jpg" alt="Dra. Odile Fernández" className="w-full h-full object-cover object-top" />
+                            {/* Fotograma del I Encuentro: el grupo entrenando en el patio del hotel.
+                                Vende el evento mejor que un retrato, y es la propia sierra de fondo. */}
+                            <img src="/imagen/hero-encuentro.webp" alt="Grupo del I Encuentro Cuid-Arte entrenando en el patio del hotel, en la Sierra de Cazorla" className="w-full h-full object-cover object-center" />
                         </div>
 
-                        {/* Layered gradients for text readability */}
                         <div className="absolute inset-0 bg-gradient-to-r from-sage-900/90 via-sage-900/50 to-transparent"></div>
                         <div className="absolute inset-0 bg-gradient-to-t from-sage-900/80 via-transparent to-sage-900/30"></div>
 
-                        {/* Grain texture */}
                         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }}></div>
 
-                        {/* Content overlay */}
                         <div className="relative z-10 h-full flex flex-col justify-between px-6 md:px-16 py-12">
-                            {/* Top — masthead */}
                             <div className="flex justify-between items-start reveal-up" style={{ animationDelay: '0.2s' }}>
                                 <div>
                                     <p className="font-heading text-[10px] text-sand-400 font-bold uppercase tracking-[5px]">Escuela Cuid-Arte</p>
@@ -282,19 +511,18 @@
                                 </div>
                             </div>
 
-                            {/* Center — title block */}
                             <div className="max-w-2xl reveal-up" style={{ animationDelay: '0.5s' }}>
                                 <div className="mb-6">
-                                    <p className="font-heading text-sand-400 text-xs font-bold uppercase tracking-[6px] mb-5">9 — 10 Mayo 2026</p>
+                                    <p className="font-heading text-sand-400 text-xs font-bold uppercase tracking-[6px] mb-5">25 — 27 Septiembre 2026</p>
                                     <h1 className="font-display text-6xl md:text-8xl lg:text-9xl font-bold text-white leading-[0.9] mb-2">
-                                        I Encuentro
+                                        II Encuentro
                                     </h1>
                                     <h1 className="font-display text-6xl md:text-8xl lg:text-9xl font-bold italic leading-[0.9]">
                                         <span className="gold-shimmer">Cuid-Arte</span>
                                     </h1>
                                 </div>
                                 <p className="font-display text-xl md:text-2xl text-white/70 italic leading-relaxed max-w-md mb-8">
-                                    Un fin de semana para reconectar contigo, con tu cuerpo y con la vida
+                                    Cuida tu cuerpo, alimenta tu alma
                                 </p>
                                 <a href="#registro" className="group inline-flex items-center gap-4 bg-sand-400 hover:bg-white text-sage-900 font-heading font-bold py-4 px-10 rounded-full text-base transition-all duration-500 shadow-2xl shadow-sand-400/30 hover:shadow-white/20">
                                     Reservar mi plaza
@@ -302,11 +530,17 @@
                                 </a>
                             </div>
 
-                            {/* Bottom — info bar */}
                             <div className="flex flex-wrap items-end justify-between gap-6 reveal-up" style={{ animationDelay: '0.8s' }}>
                                 <div className="flex items-center gap-4">
                                     <div className="bg-sand-400/15 border border-sand-400/25 backdrop-blur-md rounded-full py-2.5 px-6">
-                                        <p className="text-sand-400 font-heading font-bold text-xs uppercase tracking-[2px]">Plazas limitadas</p>
+                                        <p className="text-sand-400 font-heading font-bold text-xs uppercase tracking-[2px]">
+                                            {camasRestantes !== null && camasRestantes <= 5 && camasRestantes > 0
+                                                ? `Últimas ${camasRestantes} plazas`
+                                                : 'Plazas limitadas'}
+                                        </p>
+                                    </div>
+                                    <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-full py-2.5 px-5 hidden sm:block">
+                                        <p className="text-white font-heading font-bold text-xs">2 noches · pensión completa</p>
                                     </div>
                                 </div>
 
@@ -323,32 +557,33 @@
                         </div>
                     </section>
 
-
                     {/* ═══ ABOUT ═══ */}
                     <section className="py-24 botanical">
                         <div className="max-w-3xl mx-auto px-6 text-center">
                             <div className="inline-block mb-6">
                                 <div className="divider-leaf w-24 h-px mx-auto mb-6"></div>
-                                <p className="text-sand-500 font-heading text-[10px] font-bold uppercase tracking-[4px]">Un retiro transformador</p>
+                                <p className="text-sand-500 font-heading text-[10px] font-bold uppercase tracking-[4px]">Segunda edición</p>
                             </div>
                             <h2 className="font-display text-4xl md:text-5xl font-bold text-sage-900 leading-tight mb-8">
-                                Reconecta contigo,<br/><span className="italic text-sage-500">con tu cuerpo y con la vida</span>
+                                Un encuentro para cuidarte,<br/><span className="italic text-sage-500">aprender y volver a lo esencial</span>
                             </h2>
-                            <p className="text-sage-600 text-lg leading-relaxed max-w-2xl mx-auto mb-4">Si estás atravesando un proceso oncológico y deseas nutrir cuerpo, mente y alma cuidando de ti con pausa y amor, este encuentro es para ti.</p>
-                            <p className="text-sage-500 text-base leading-relaxed max-w-xl mx-auto">Ciencia, autocuidado y conexión en un entorno mágico y entre mujeres que buscan lo mismo que tú.</p>
+                            <p className="text-sage-600 text-lg leading-relaxed max-w-2xl mx-auto mb-4">Si estás atravesando un proceso oncológico y quieres nutrir cuerpo, mente y alma con pausa y con calma, este encuentro es para ti.</p>
+                            <p className="text-sage-500 text-base leading-relaxed max-w-xl mx-auto">Ciencia, autocuidado y conexión en un entorno mágico, entre mujeres que buscan lo mismo que tú. Tres días, del viernes por la tarde al domingo después de comer.</p>
                         </div>
                     </section>
 
-                    {/* ═══ ACTIVITIES ═══ */}
+                    {/* ═══ ACTIVIDADES ═══ */}
                     <section className="pb-24">
                         <div className="max-w-5xl mx-auto px-6">
-                            <h2 className="font-display text-3xl font-bold text-center text-sage-900 mb-4">Esto es solo un adelanto</h2>
-                            <p className="text-center text-sage-500 text-sm mb-12 font-heading italic">de lo que te espera</p>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+                            <h2 className="font-display text-3xl font-bold text-center text-sage-900 mb-4">Lo que te espera</h2>
+                            <p className="text-center text-sage-500 text-sm mb-12 font-heading italic">todo incluido en el precio</p>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
                                 {ACTIVITIES.map((a, i) => (
                                     <div key={i} className="group bg-white/70 backdrop-blur-sm rounded-3xl p-7 text-center border border-sage-100 hover:border-sand-300/50 hover:shadow-lg hover:shadow-sand-400/5 transition-all duration-500 hover:-translate-y-1">
                                         <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{a.icon}</div>
-                                        <h3 className="font-heading font-bold text-xs uppercase tracking-[2px] text-sage-800 mb-2">{a.title}</h3>
+                                        {/* En movil la tarjeta mide ~150px: con tracking fijo, titulos como
+                                            "ENTRENAMIENTO ADAPTADO" se salian de la caja. */}
+                                        <h3 className="font-heading font-bold text-[10px] md:text-xs uppercase tracking-[0.5px] md:tracking-[2px] leading-tight text-sage-800 mb-2 break-words">{a.title}</h3>
                                         <p className="text-[11px] text-sage-500 leading-relaxed">{a.desc}</p>
                                     </div>
                                 ))}
@@ -356,18 +591,78 @@
                         </div>
                     </section>
 
-                    {/* ═══ BOOK SIGNING ═══ */}
-                    <section className="py-20 grain" style={{ background: 'linear-gradient(135deg, #1a2e1a, #2d4a2d)' }}>
-                        <div className="max-w-3xl mx-auto px-6 text-center">
-                            <p className="text-5xl mb-5">📖</p>
-                            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4 italic">Firma de libros con la Dra. Odile</h2>
-                            <div className="divider-leaf w-16 h-px mx-auto mb-6"></div>
-                            <p className="text-sage-300 text-base leading-relaxed max-w-lg mx-auto">Todos los asistentes tendrán la oportunidad de llevarse un libro firmado personalmente por la Dra. Odile Fernández, autora de más de 10 libros sobre alimentación y salud oncológica.</p>
+                    {/* ═══ VÍDEO DEL I ENCUENTRO ═══ */}
+                    <section className="pb-24 botanical">
+                        <div className="max-w-4xl mx-auto px-6">
+                            <div className="text-center mb-10">
+                                <p className="text-sand-500 font-heading text-[10px] font-bold uppercase tracking-[4px] mb-3">Así fue el primero</p>
+                                <h2 className="font-display text-3xl md:text-4xl font-bold text-sage-900 mb-3">Un fin de semana contado por dentro</h2>
+                                <p className="text-sage-500 text-sm max-w-xl mx-auto">Tres minutos del I Encuentro, en mayo, con la voz de la Dra. Odile Fernández.</p>
+                            </div>
+                            <div className="rounded-3xl overflow-hidden border border-sage-100 shadow-lg shadow-sage-900/5 bg-sage-900">
+                                <video
+                                    className="w-full h-auto block"
+                                    controls
+                                    preload="none"
+                                    playsInline
+                                    poster="/video/i-encuentro-cuidarte-poster.jpg">
+                                    <source src="/video/i-encuentro-cuidarte.mp4" type="video/mp4" />
+                                    Tu navegador no puede reproducir el vídeo. Escríbenos por WhatsApp y te lo enviamos.
+                                </video>
+                            </div>
                         </div>
                     </section>
 
-                    {/* ═══ LOCATION ═══ */}
-                    <section className="py-24 botanical">
+                    {/* ═══ CABALLOS — lo nuevo de esta edición ═══ */}
+                    <section className="py-24 grain" style={{ background: 'linear-gradient(135deg, #1a2e1a, #2d4a2d)' }}>
+                        <div className="max-w-4xl mx-auto px-6">
+                            <div className="text-center mb-12">
+                                <p className="text-sand-400 font-heading text-[10px] font-bold uppercase tracking-[4px] mb-3">Nuevo en esta edición</p>
+                                <h2 className="font-display text-4xl md:text-5xl font-bold text-white italic mb-5">Una tarde con los caballos</h2>
+                                <div className="divider-leaf w-16 h-px mx-auto mb-6"></div>
+                                <p className="text-sage-300 text-base leading-relaxed max-w-xl mx-auto">
+                                    No se trata de montar. Se trata de entrar en la pista, mezclarte con la manada y descubrir que un animal de media tonelada puede acercarse a ti con una suavidad que no esperabas.
+                                </p>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-5 mb-10">
+                                {[
+                                    { n: '01', t: 'Entrar en la manada', d: 'Saludarlos, mezclarte con ellos, verlos relacionarse entre sí en semilibertad.' },
+                                    { n: '02', t: 'Entender qué te dicen', d: 'Un experto te traduce su lenguaje corporal: cómo se acercan, cómo avisan, cómo confían.' },
+                                    { n: '03', t: 'Doma natural', d: 'Una demostración de cómo se trabaja con el caballo desde el acuerdo y no desde la fuerza.' },
+                                    { n: '04', t: 'Cuidarlos tú', d: 'Sacarlos a la cuerda, cepillarlos, limpiar cascos, colocar la silla. Con tus manos.' },
+                                ].map((s, i) => (
+                                    <div key={i} className="bg-white/[0.06] backdrop-blur-sm border border-white/10 rounded-3xl p-7">
+                                        <p className="font-display text-sand-400 text-2xl font-bold mb-2">{s.n}</p>
+                                        <h3 className="font-heading font-bold text-sm text-white mb-2">{s.t}</h3>
+                                        <p className="text-sage-300 text-xs leading-relaxed">{s.d}</p>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="bg-sand-400/10 border border-sand-400/25 rounded-3xl p-8 text-center">
+                                <p className="text-white text-sm leading-relaxed max-w-2xl mx-auto mb-4">
+                                    Todo esto va <strong className="text-sand-400">incluido en tu plaza</strong> y se hace con los pies en el suelo. Si además te apetece montar, al final hay una pequeña ruta a caballo de 45 minutos por <strong className="text-sand-400">27 € más</strong>.
+                                </p>
+                                <p className="text-sage-400 text-xs leading-relaxed max-w-xl mx-auto">
+                                    La lleva una empresa de turismo activo, con seguro y material propio. Tú decides: puedes quedarte en la parte de tierra y disfrutarla entera sin montar.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* ═══ FIRMA DE LIBROS ═══ */}
+                    <section className="py-20 botanical">
+                        <div className="max-w-3xl mx-auto px-6 text-center">
+                            <p className="text-5xl mb-5">📖</p>
+                            <h2 className="font-display text-3xl md:text-4xl font-bold text-sage-900 mb-4 italic">Firma de libros con la Dra. Odile</h2>
+                            <div className="divider-leaf w-16 h-px mx-auto mb-6"></div>
+                            <p className="text-sage-600 text-base leading-relaxed max-w-lg mx-auto">Todas las asistentes podréis llevaros un libro firmado personalmente por la Dra. Odile Fernández, autora de más de diez libros sobre alimentación y salud oncológica. El sábado, de sobremesa y sin formalidades.</p>
+                        </div>
+                    </section>
+
+                    {/* ═══ UBICACIÓN ═══ */}
+                    <section className="pb-24 botanical">
                         <div className="max-w-4xl mx-auto px-6">
                             <div className="text-center mb-12">
                                 <p className="text-sand-500 font-heading text-[10px] font-bold uppercase tracking-[4px] mb-3">El escenario</p>
@@ -377,164 +672,157 @@
                                 <div className="grid md:grid-cols-2">
                                     <div className="p-10 space-y-5">
                                         <h3 className="font-display text-2xl font-bold text-sage-800 italic">Hotel Rural Valle del Turrilla</h3>
-                                        <p className="text-sage-600 text-sm leading-relaxed">Un hotel rural con encanto en el corazón de la Sierra de Cazorla. Habitaciones rústicas rodeadas de naturaleza, piscina, restaurante de cocina casera y unas vistas impresionantes.</p>
+                                        <p className="text-sage-600 text-sm leading-relaxed">Un hotel rural con encanto en el corazón de la Sierra de Cazorla. Habitaciones rústicas rodeadas de naturaleza, restaurante de cocina casera y unas vistas impresionantes. La pista de los caballos está a dos minutos andando.</p>
                                         <p className="text-sage-400 text-xs leading-relaxed">Ctra de Huesa, C. Veguetas, S/N · 23486 Hinojares, Jaén</p>
                                         <a href="https://maps.google.com/?q=Hotel+Rural+Valle+del+Turrilla+Hinojares+Jaen" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-sage-500 hover:bg-sage-600 text-white font-heading font-bold text-sm px-6 py-3 rounded-full transition-all">
                                             📍 Cómo llegar
                                         </a>
                                     </div>
                                     <div>
-                                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d12610!2d-2.9944!3d37.7283!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd6f4a8a5b5b5b%3A0x7c8e4e4e4e4e4e4e!2sHinojares%2C+Ja%C3%A9n!5e0!3m2!1ses!2ses!4v1" width="100%" height="100%" style={{border:0, minHeight: '300px'}} allowFullScreen="" loading="lazy"></iframe>
+                                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d12610!2d-2.9944!3d37.7283!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd6f4a8a5b5b5b%3A0x7c8e4e4e4e4e4e4e!2sHinojares%2C+Ja%C3%A9n!5e0!3m2!1ses!2ses!4v1" width="100%" height="100%" style={{border:0, minHeight: '300px'}} allowFullScreen="" loading="lazy" title="Mapa de Hinojares, Jaén"></iframe>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </section>
 
-                    {/* ═══ PLANNING ═══ */}
+                    {/* ═══ PROGRAMA ═══ */}
                     <section className="py-24 bg-sage-50/50">
-                        <div className="max-w-4xl mx-auto px-6">
+                        <div className="max-w-6xl mx-auto px-6">
                             <div className="text-center mb-14">
                                 <p className="text-sand-500 font-heading text-[10px] font-bold uppercase tracking-[4px] mb-3">Programa</p>
-                                <h2 className="font-display text-3xl font-bold text-sage-900">Planning del encuentro</h2>
+                                <h2 className="font-display text-3xl font-bold text-sage-900">Tres días, hora a hora</h2>
+                                <p className="text-sage-400 text-xs mt-3 font-heading italic">Puede haber ajustes menores según el tiempo</p>
                             </div>
 
-                            <div className="grid md:grid-cols-2 gap-8">
-                                {/* SÁBADO */}
+                            <div className="grid md:grid-cols-3 gap-8">
                                 <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-sage-100 overflow-hidden">
-                                    <div className="bg-sage-800 px-7 py-5">
-                                        <p className="font-display text-xl font-bold text-white">Sábado</p>
-                                        <p className="text-sage-300 text-xs font-heading tracking-wide">Llegada, conexión y aprendizaje</p>
+                                    <div className="bg-sage-700 px-7 py-5">
+                                        <p className="font-display text-xl font-bold text-white">Viernes 25</p>
+                                        <p className="text-sage-300 text-xs font-heading tracking-wide">Llegada y grupo</p>
                                     </div>
-                                    <div className="p-7 space-y-5">
-                                        {[
-                                            { t: '13:30', title: 'Llegada y comida de bienvenida', desc: 'Primer contacto en un ambiente relajado' },
-                                            { t: '15:00', title: 'Círculo de bienvenida', desc: 'Presentación, compartir expectativas y crear grupo' },
-                                            { t: '16:00', title: 'Taller de alimentación anticáncer', desc: 'Claves prácticas basadas en evidencia para el día a día' },
-                                            { t: '17:30', title: 'Descanso / infusiones', desc: null },
-                                            { t: '18:00', title: 'Clase de yoga + respiración consciente', desc: 'Soltar tensiones y conectar con el cuerpo' },
-                                            { t: '19:30', title: 'Cena saludable', desc: null },
-                                            { t: '21:00', title: 'Charla: Hábitos de vida y cáncer', desc: 'Sueño, estrés, ejercicio, microbiota... enfoque integrativo' },
-                                            { t: '22:00', title: 'Meditación guiada y descanso', desc: null },
-                                        ].map((item, i) => (
-                                            <div key={i} className="flex gap-4">
-                                                <div className="w-14 flex-shrink-0 text-right">
-                                                    <span className="font-heading font-bold text-sand-500 text-sm">{item.t}</span>
-                                                </div>
-                                                <div className="flex-1 border-l-2 border-sage-100 pl-4">
-                                                    <p className="font-heading font-semibold text-sage-800 text-sm">{item.title}</p>
-                                                    {item.desc && <p className="text-sage-500 text-xs mt-0.5">{item.desc}</p>}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                    <Timeline items={DIA_VIERNES} />
                                 </div>
 
-                                {/* DOMINGO */}
+                                <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-sage-100 overflow-hidden">
+                                    <div className="bg-sage-800 px-7 py-5">
+                                        <p className="font-display text-xl font-bold text-white">Sábado 26</p>
+                                        <p className="text-sage-300 text-xs font-heading tracking-wide">Naturaleza, ciencia y caballos</p>
+                                    </div>
+                                    <Timeline items={DIA_SABADO} />
+                                </div>
+
                                 <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-sage-100 overflow-hidden">
                                     <div className="bg-sand-500 px-7 py-5">
-                                        <p className="font-display text-xl font-bold text-white">Domingo</p>
-                                        <p className="text-sand-100 text-xs font-heading tracking-wide">Activar, naturaleza e integración</p>
+                                        <p className="font-display text-xl font-bold text-white">Domingo 27</p>
+                                        <p className="text-sand-100 text-xs font-heading tracking-wide">Cuerpo, emoción y cierre</p>
                                     </div>
-                                    <div className="p-7 space-y-5">
-                                        {[
-                                            { t: '08:30', title: 'Meditación + yoga suave', desc: 'Opcional' },
-                                            { t: '09:00', title: 'Desayuno saludable', desc: null },
-                                            { t: '10:00', title: 'Entrenamiento funcional adaptado', desc: 'Trabajo clave para mejorar masa muscular, energía y pronóstico' },
-                                            { t: '11:30', title: 'Excursión al olivar ecológico + cata de AOVE', desc: 'Conexión con la naturaleza + aprendizaje práctico' },
-                                            { t: '13:30', title: 'Cierre del encuentro', desc: 'Reflexiones, integración y despedida' },
-                                        ].map((item, i) => (
-                                            <div key={i} className="flex gap-4">
-                                                <div className="w-14 flex-shrink-0 text-right">
-                                                    <span className="font-heading font-bold text-sand-500 text-sm">{item.t}</span>
-                                                </div>
-                                                <div className="flex-1 border-l-2 border-sage-100 pl-4">
-                                                    <p className="font-heading font-semibold text-sage-800 text-sm">{item.title}</p>
-                                                    {item.desc && <p className="text-sage-500 text-xs mt-0.5">{item.desc}</p>}
-                                                </div>
-                                            </div>
-                                        ))}
-                                        <div className="mt-4 pt-4 border-t border-sage-100">
-                                            <p className="text-sage-400 text-xs font-heading italic">👉 Salida antes del almuerzo</p>
-                                        </div>
-                                    </div>
+                                    <Timeline items={DIA_DOMINGO} />
                                 </div>
                             </div>
                         </div>
                     </section>
 
-                    {/* ═══ PRICING ═══ */}
+                    {/* ═══ PRECIOS ═══ */}
                     <section className="py-24 botanical">
                         <div className="max-w-4xl mx-auto px-6">
                             <div className="text-center mb-12">
                                 <p className="text-sand-500 font-heading text-[10px] font-bold uppercase tracking-[4px] mb-3">Inversión</p>
                                 <h2 className="font-display text-3xl font-bold text-sage-900 mb-3">Elige tu experiencia</h2>
-                                <p className="text-sage-500 text-sm">Incluye todo el fin de semana: alojamiento, pensión completa y todas las actividades</p>
+                                <p className="text-sage-500 text-sm">Precio por persona · 2 noches, pensión completa y todas las actividades</p>
                             </div>
-                            <div className="grid md:grid-cols-3 gap-6">
-                                {/* Alumnas */}
+
+                            <div className="grid md:grid-cols-2 gap-6 mb-6">
                                 <div className="relative bg-white rounded-3xl p-8 border-2 border-sage-500 shadow-lg shadow-sage-500/5 overflow-hidden">
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-sage-500/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
                                     <div className="relative">
                                         <span className="inline-block bg-sage-500 text-white text-[10px] font-heading font-bold uppercase tracking-[2px] px-4 py-1.5 rounded-full mb-6">Alumnas Cuid-Arte</span>
-                                        <p className="text-sage-500 text-[10px] mb-4 font-heading">Alojamiento + pensión completa + actividades</p>
                                         <div className="space-y-5">
                                             <div className="flex justify-between items-baseline border-b border-sage-100 pb-4">
-                                                <span className="text-sage-700 text-sm">Hab. doble</span>
-                                                <div className="flex items-baseline gap-1"><span className="font-display text-3xl font-bold text-sage-800">150</span><span className="text-sage-500 text-sm">€</span></div>
+                                                <span className="text-sage-700 text-sm">Habitación doble compartida</span>
+                                                <div className="flex items-baseline gap-1"><span className="font-display text-3xl font-bold text-sage-800">250</span><span className="text-sage-500 text-sm">€</span></div>
                                             </div>
                                             <div className="flex justify-between items-baseline">
-                                                <span className="text-sage-700 text-sm">Hab. individual</span>
-                                                <div className="flex items-baseline gap-1"><span className="font-display text-3xl font-bold text-sage-800">190</span><span className="text-sage-500 text-sm">€</span></div>
+                                                <span className="text-sage-700 text-sm">Habitación individual</span>
+                                                <div className="flex items-baseline gap-1"><span className="font-display text-3xl font-bold text-sage-800">320</span><span className="text-sage-500 text-sm">€</span></div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                {/* Externas */}
+
                                 <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 border border-sage-200/60">
-                                    <span className="inline-block bg-sage-100 text-sage-600 text-[10px] font-heading font-bold uppercase tracking-[2px] px-4 py-1.5 rounded-full mb-6">Otras personas</span>
-                                    <p className="text-sage-500 text-[10px] mb-4 font-heading">Alojamiento + pensión completa + actividades</p>
+                                    <span className="inline-block bg-sage-100 text-sage-600 text-[10px] font-heading font-bold uppercase tracking-[2px] px-4 py-1.5 rounded-full mb-6">Precio general</span>
                                     <div className="space-y-5">
                                         <div className="flex justify-between items-baseline border-b border-sage-100 pb-4">
-                                            <span className="text-sage-600 text-sm">Hab. doble</span>
-                                            <div className="flex items-baseline gap-1"><span className="font-display text-3xl font-bold text-sage-700">200</span><span className="text-sage-400 text-sm">€</span></div>
+                                            <span className="text-sage-600 text-sm">Habitación doble compartida</span>
+                                            <div className="flex items-baseline gap-1"><span className="font-display text-3xl font-bold text-sage-700">300</span><span className="text-sage-400 text-sm">€</span></div>
                                         </div>
                                         <div className="flex justify-between items-baseline">
-                                            <span className="text-sage-600 text-sm">Hab. individual</span>
-                                            <div className="flex items-baseline gap-1"><span className="font-display text-3xl font-bold text-sage-700">250</span><span className="text-sage-400 text-sm">€</span></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                {/* Solo actividades */}
-                                <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 border border-sand-300/40">
-                                    <span className="inline-block bg-sand-400/15 text-sand-600 text-[10px] font-heading font-bold uppercase tracking-[2px] px-4 py-1.5 rounded-full mb-6">Sin alojamiento</span>
-                                    <p className="text-sage-500 text-[10px] mb-4 font-heading">Participa sin quedarte a dormir</p>
-                                    <div className="space-y-5">
-                                        <div className="flex justify-between items-baseline border-b border-sage-100 pb-4">
-                                            <span className="text-sage-600 text-sm">Solo actividades</span>
-                                            <div className="flex items-baseline gap-1"><span className="font-display text-3xl font-bold text-sage-700">60</span><span className="text-sage-400 text-sm">€</span></div>
-                                        </div>
-                                        <div className="flex justify-between items-baseline">
-                                            <span className="text-sage-600 text-sm">Actividades + comida</span>
-                                            <div className="flex items-baseline gap-1"><span className="font-heading text-sm text-sage-400 italic">Próximamente</span></div>
+                                            <span className="text-sage-600 text-sm">Habitación individual</span>
+                                            <div className="flex items-baseline gap-1"><span className="font-display text-3xl font-bold text-sage-700">370</span><span className="text-sage-400 text-sm">€</span></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 border border-sand-300/40">
+                                    <span className="inline-block bg-sand-400/15 text-sand-600 text-[10px] font-heading font-bold uppercase tracking-[2px] px-4 py-1.5 rounded-full mb-4">Sin alojamiento</span>
+                                    <div className="flex justify-between items-baseline">
+                                        <div>
+                                            <p className="text-sage-700 text-sm">Actividades y comidas</p>
+                                            <p className="text-sage-400 text-[11px] mt-1">Duermes por tu cuenta · solo 5 plazas</p>
+                                        </div>
+                                        <div className="flex items-baseline gap-1"><span className="font-display text-3xl font-bold text-sage-700">150</span><span className="text-sage-400 text-sm">€</span></div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-sage-800 rounded-3xl p-8 text-white">
+                                    <span className="inline-block bg-white/10 text-sand-400 text-[10px] font-heading font-bold uppercase tracking-[2px] px-4 py-1.5 rounded-full mb-4">Opcional</span>
+                                    <div className="flex justify-between items-baseline">
+                                        <div>
+                                            <p className="text-white text-sm">🐴 Paseo a caballo</p>
+                                            <p className="text-sage-400 text-[11px] mt-1">45 minutos · la sesión en tierra ya va incluida</p>
+                                        </div>
+                                        <div className="flex items-baseline gap-1"><span className="font-display text-3xl font-bold text-sand-400">+27</span><span className="text-sage-400 text-sm">€</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p className="text-center text-sage-400 text-xs mt-8 max-w-2xl mx-auto leading-relaxed">
+                                Incluye 2 noches de alojamiento, pensión completa desde la cena del viernes hasta la comida del domingo, todas las actividades del programa y el acompañamiento del equipo Cuid-Arte. La modalidad sin alojamiento incluye las actividades y las comidas (no los desayunos).
+                            </p>
                         </div>
                     </section>
 
-                    {/* ═══ FORM ═══ */}
+                    {/* ═══ FORMULARIO ═══ */}
                     <section id="registro" className="py-24 bg-white grain">
                         <div className="max-w-2xl mx-auto px-6">
                             <div className="text-center mb-12">
                                 <p className="text-sand-500 font-heading text-[10px] font-bold uppercase tracking-[4px] mb-3">Tu plaza te espera</p>
                                 <h2 className="font-display text-3xl md:text-4xl font-bold text-sage-900 mb-3">Reserva tu plaza</h2>
-                                <p className="text-sage-500 text-sm">Completa el formulario y te redirigiremos al pago seguro</p>
+                                <p className="text-sage-500 text-sm">Completa el formulario y te confirmamos la plaza</p>
                             </div>
+
+                            {pagoFallido && step === 1 && (
+                                <div className="bg-red-50 border border-red-200 rounded-2xl p-5 mb-5">
+                                    <p className="font-heading font-bold text-sm text-sage-800 mb-1">El pago no se ha completado</p>
+                                    <p className="text-xs text-sage-600 leading-relaxed">Tu inscripción está guardada. Escribe tu email aquí abajo y podrás terminar el pago sin volver a rellenar nada.</p>
+                                </div>
+                            )}
 
                             {step === 1 && (
                                 <div className="space-y-5 bg-earth-50/50 rounded-3xl p-8 md:p-10 border border-sage-100">
+                                    {hayBorrador && (
+                                        <div className="bg-sage-50 border border-sage-200/60 rounded-2xl p-4 flex items-center justify-between gap-4">
+                                            <p className="text-xs text-sage-600 leading-relaxed">
+                                                <strong className="font-heading text-sage-800">Seguimos donde lo dejaste.</strong> Hemos recuperado lo que habías escrito en este dispositivo.
+                                            </p>
+                                            <button type="button" onClick={empezarDeCero} className="text-[11px] font-heading font-bold text-sage-500 hover:text-sage-700 underline whitespace-nowrap">
+                                                Empezar de cero
+                                            </button>
+                                        </div>
+                                    )}
                                     <div className="space-y-1.5">
                                         <label className={labelClass}>Nombre *</label>
                                         <input className={inputClass('first_name')} placeholder="Nombre" value={form.first_name} onChange={e => { setForm({...form, first_name: e.target.value}); setErrors({...errors, first_name: false}); }} />
@@ -552,7 +840,32 @@
 
                                     <div className="space-y-1.5">
                                         <label className={labelClass}>Email *</label>
-                                        <input type="email" className={inputClass('email')} value={form.email} onChange={e => { setForm({...form, email: e.target.value, is_student: ''}); setVerified(null); setErrors({...errors, email: false}); }} />
+                                        <input type="email" className={inputClass('email')} value={form.email}
+                                            onChange={e => { setForm({...form, email: e.target.value, is_student: ''}); setVerified(null); setYaInscrita(null); setErrors({...errors, email: false}); }}
+                                            onBlur={e => comprobarInscripcionPrevia(e.target.value)} />
+                                        {yaInscrita && (() => {
+                                            const pagada = yaInscrita.estado === 'paid' || yaInscrita.estado === 'pagado';
+                                            const idReserva = yaInscrita.reserva?.id || yaInscrita.registration_id;
+                                            const puedeRetomar = !pagada && !!idReserva;
+                                            const importe = yaInscrita.reserva?.importe;
+                                            return (
+                                            <div className="bg-sand-400/10 border border-sand-400/40 rounded-2xl p-5 mt-2">
+                                                <p className="font-heading font-bold text-sm text-sage-800 mb-1">Ya tienes una reserva con este email 🌿</p>
+                                                <p className="text-xs text-sage-600 leading-relaxed">
+                                                    {pagada
+                                                        ? 'Tu plaza está confirmada y pagada. No hace falta que vuelvas a inscribirte: nos vemos en Hinojares.'
+                                                        : 'Tu inscripción está guardada, solo falta el pago. No la repitas: puedes terminarla desde aquí mismo.'}
+                                                </p>
+                                                {puedeRetomar
+                                                    ? <button type="button" disabled={submitting} onClick={() => retomarPago(idReserva, form.payment_method)} className="inline-block mt-3 bg-sand-400 hover:bg-sand-500 text-sage-900 font-heading font-bold text-xs px-6 py-3 rounded-full transition-all disabled:opacity-50">
+                                                        {submitting ? 'Abriendo el pago...' : `Terminar mi pago${importe ? ` — ${Math.round(importe)}€` : ''}`}
+                                                      </button>
+                                                    : <a href="https://wa.me/34664401328?text=Hola%2C%20ya%20me%20inscrib%C3%AD%20en%20el%20II%20Encuentro%20y%20quiero%20terminar%20el%20pago." target="_blank" rel="noopener noreferrer" className="inline-block mt-3 text-xs font-heading font-bold text-sage-700 underline">
+                                                        {pagada ? 'Escribirnos por WhatsApp' : 'Escríbenos y lo cerramos por WhatsApp'}
+                                                      </a>}
+                                            </div>
+                                            );
+                                        })()}
                                     </div>
 
                                     <div className="space-y-1.5">
@@ -565,20 +878,19 @@
                                         </div>
                                     </div>
 
-                                    {/* Tipo de experiencia */}
+                                    {/* Modalidad */}
                                     <div className="space-y-1.5">
                                         <label className={labelClass}>¿Cómo quieres vivir el encuentro? *</label>
                                         <div className="space-y-2">
                                             {[
-                                                { val: 'alojamiento', label: '🏡 Fin de semana completo', desc: 'Alojamiento + pensión completa + actividades', price: 'desde 150€' },
-                                                { val: 'daypass', label: '☀️ Solo actividades', desc: 'Participa en las actividades sin alojamiento', price: '60€' },
-                                                { val: 'daypass_comida', label: '🍽️ Actividades + comida', desc: 'Actividades + comidas del día', price: 'Próximamente' },
+                                                { val: 'alojamiento', label: '🏡 Fin de semana completo', desc: '2 noches + pensión completa + actividades', price: 'desde 250€', full: camasRestantes === 0 },
+                                                { val: 'sin_alojamiento', label: '☀️ Actividades y comidas', desc: 'Sin alojamiento ni desayunos · 5 plazas', price: '150€', full: sinAlojRestantes === 0 },
                                             ].map(opt => (
-                                                <button key={opt.val} type="button" onClick={() => { setForm({...form, experience_type: opt.val, room_type: opt.val !== 'alojamiento' ? '' : form.room_type, is_student: opt.val !== 'alojamiento' ? 'no' : form.is_student }); setErrors({...errors, experience_type: false}); }} className={`w-full text-left p-4 rounded-2xl border-2 transition-all ${form.experience_type === opt.val ? 'border-sage-500 bg-sage-50' : 'border-sage-200/60 hover:border-sage-300'}`}>
+                                                <button key={opt.val} type="button" disabled={opt.full} onClick={() => { setForm({...form, experience_type: opt.val, room_type: opt.val !== 'alojamiento' ? '' : form.room_type, is_student: opt.val !== 'alojamiento' ? 'no' : form.is_student }); setErrors({...errors, experience_type: false}); }} className={`w-full text-left p-4 rounded-2xl border-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${form.experience_type === opt.val ? 'border-sage-500 bg-sage-50' : 'border-sage-200/60 hover:border-sage-300'}`}>
                                                     <div className="flex justify-between items-center">
                                                         <div>
                                                             <p className="font-heading font-semibold text-sm text-sage-800">{opt.label}</p>
-                                                            <p className="text-[11px] text-sage-500 mt-0.5">{opt.desc}</p>
+                                                            <p className="text-[11px] text-sage-500 mt-0.5">{opt.full ? 'Plazas agotadas' : opt.desc}</p>
                                                         </div>
                                                         <span className={`font-heading font-bold text-sm ${form.experience_type === opt.val ? 'text-sage-700' : 'text-sage-400'}`}>{opt.price}</span>
                                                     </div>
@@ -588,19 +900,20 @@
                                         {errors.experience_type && <p className="text-xs text-red-400">Selecciona una opción</p>}
                                     </div>
 
-                                    {/* Alumna + habitación — solo si alojamiento */}
+                                    {/* Alumna + habitación */}
                                     {needsRoom && (<>
                                     <div className="space-y-1.5">
                                         <label className={labelClass}>¿Eres alumna de Escuela Cuid-Arte? *</label>
                                         <p className="text-[10px] text-sage-400 italic -mt-0.5 mb-1">Si eres alumna, usa el mismo email de tu registro para verificar</p>
                                         <div className="flex gap-3">
-                                            <button type="button" onClick={() => { setForm({...form, is_student: 'yes'}); verifyStudent(); setErrors({...errors, is_student: false}); }} className={`flex-1 py-3.5 rounded-2xl border-2 font-heading font-semibold text-sm transition-all ${form.is_student === 'yes' ? 'border-sage-500 bg-sage-50 text-sage-700' : 'border-sage-200/60 text-sage-400 hover:border-sage-300'}`}>
+                                            <button type="button" onClick={() => { setForm({...form, is_student: 'yes'}); verifyStudent(); setErrors({...errors, is_student: false}); }} className={`flex-1 py-3.5 rounded-2xl border-2 font-heading font-semibold text-sm transition-all ${groupBorder('is_student', form.is_student === 'yes')}`}>
                                                 Sí, soy alumna
                                             </button>
-                                            <button type="button" onClick={() => { setForm({...form, is_student: 'no'}); setVerified(false); setErrors({...errors, is_student: false}); }} className={`flex-1 py-3.5 rounded-2xl border-2 font-heading font-semibold text-sm transition-all ${form.is_student === 'no' ? 'border-sage-500 bg-sage-50 text-sage-700' : 'border-sage-200/60 text-sage-400 hover:border-sage-300'}`}>
+                                            <button type="button" onClick={() => { setForm({...form, is_student: 'no'}); setVerified(false); setErrors({...errors, is_student: false}); }} className={`flex-1 py-3.5 rounded-2xl border-2 font-heading font-semibold text-sm transition-all ${groupBorder('is_student', form.is_student === 'no')}`}>
                                                 No
                                             </button>
                                         </div>
+                                        <FieldError field="is_student">Dinos si eres alumna para aplicar el precio que te corresponde</FieldError>
                                         {form.is_student === 'yes' && verified === true && <p className="text-xs text-sage-600 font-medium mt-1">✓ Verificada — precio especial aplicado</p>}
                                         {form.is_student === 'yes' && verified === false && <p className="text-xs text-sand-600 font-medium mt-1">No encontramos tu email. Verifica o contacta por WhatsApp.</p>}
                                         {verifying && <p className="text-xs text-sage-400 mt-1">Verificando...</p>}
@@ -610,12 +923,13 @@
                                         <label className={labelClass}>Tipo de habitación *</label>
                                         <div className="flex gap-3">
                                             {['doble', 'individual'].map(t => (
-                                                <button key={t} type="button" onClick={() => { setForm({...form, room_type: t}); setErrors({...errors, room_type: false}); }} className={`flex-1 py-5 rounded-2xl border-2 font-heading font-semibold text-sm transition-all ${form.room_type === t ? 'border-sage-500 bg-sage-50 text-sage-700' : 'border-sage-200/60 text-sage-400 hover:border-sage-300'}`}>
+                                                <button key={t} type="button" onClick={() => { setForm({...form, room_type: t}); setErrors({...errors, room_type: false}); }} className={`flex-1 py-5 rounded-2xl border-2 font-heading font-semibold text-sm transition-all ${groupBorder('room_type', form.room_type === t)}`}>
                                                     {t === 'doble' ? '🛏️ Doble' : '🛏️ Individual'}
                                                     {form.is_student && <span className="block font-display text-xl mt-1">{form.is_student === 'yes' ? PRICES.student[t] : PRICES.external[t]}€</span>}
                                                 </button>
                                             ))}
                                         </div>
+                                        <FieldError field="room_type">Elige el tipo de habitación</FieldError>
                                     </div>
 
                                     {form.room_type === 'doble' && (
@@ -625,6 +939,22 @@
                                         </div>
                                     )}
                                     </>)}
+
+                                    {/* Paseo a caballo opcional */}
+                                    {form.experience_type && (
+                                        <button type="button" onClick={() => setForm({...form, horse_ride: !form.horse_ride})} className={`w-full text-left p-5 rounded-2xl border-2 transition-all ${form.horse_ride ? 'border-sand-400 bg-sand-400/10' : 'border-sage-200/60 hover:border-sand-300'}`}>
+                                            <div className="flex justify-between items-start gap-4">
+                                                <div className="flex gap-3">
+                                                    <span className="text-2xl">🐴</span>
+                                                    <div>
+                                                        <p className="font-heading font-semibold text-sm text-sage-800">Añadir el paseo a caballo</p>
+                                                        <p className="text-[11px] text-sage-500 mt-1 leading-relaxed">Ruta de 45 minutos al final de la sesión. La parte de tierra —manada, cuadra y manejo— ya va incluida en tu plaza, montes o no.</p>
+                                                    </div>
+                                                </div>
+                                                <span className={`font-heading font-bold text-sm whitespace-nowrap ${form.horse_ride ? 'text-sand-600' : 'text-sage-400'}`}>+27€</span>
+                                            </div>
+                                        </button>
+                                    )}
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1.5">
@@ -679,7 +1009,7 @@
                                         <label className={labelClass}>¿Cómo te has enterado del evento? *</label>
                                         <select className={selectClass('how_found')} value={form.how_found} onChange={e => { setForm({...form, how_found: e.target.value}); setErrors({...errors, how_found: false}); }}>
                                             <option value="">Selecciona...</option>
-                                            <option>Instagram</option><option>WhatsApp del equipo</option><option>Recomendación</option><option>Newsletter</option><option>Otro</option>
+                                            <option>Instagram</option><option>WhatsApp del equipo</option><option>Recomendación</option><option>Newsletter</option><option>Estuve en el I Encuentro</option><option>Otro</option>
                                         </select>
                                     </div>
 
@@ -698,20 +1028,35 @@
                                         <label className={labelClass}>¿Qué te motiva a asistir?</label>
                                         <select className={selectClass('')} value={form.motivation} onChange={e => setForm({...form, motivation: e.target.value})}>
                                             <option value="">Selecciona...</option>
-                                            <option>Conocer al equipo de Cuid-Arte</option><option>Conectar con otras personas</option><option>Naturaleza y aire libre</option><option>Nutrición y ejercicio</option><option>Desconectar y cuidarme</option><option>Todo lo anterior</option>
+                                            <option>Conocer al equipo de Cuid-Arte</option><option>Conectar con otras personas</option><option>Naturaleza y aire libre</option><option>Nutrición y ejercicio</option><option>La experiencia con los caballos</option><option>Desconectar y cuidarme</option><option>Todo lo anterior</option>
                                         </select>
                                     </div>
 
-                                    <button type="button" onClick={() => { if (validateStep1()) setStep(2); else showToast('Completa los campos obligatorios', 'error'); }} className="w-full bg-sage-800 hover:bg-sage-900 text-white font-heading font-bold py-4 rounded-2xl transition-all shadow-lg text-sm tracking-wide">
-                                        Continuar →
+                                    <button type="button" onClick={() => {
+                                        if (validateStep1()) { setStep(2); return; }
+                                        showToast('Te falta algo por completar — te lo hemos marcado', 'error');
+                                        // Llevar a la persona al primer campo que falta, no dejarla buscandolo
+                                        setTimeout(() => {
+                                            const el = document.querySelector('#registro .border-red-300');
+                                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                        }, 60);
+                                    }} disabled={!!yaInscrita} className="w-full bg-sage-800 hover:bg-sage-900 text-white font-heading font-bold py-4 rounded-2xl transition-all shadow-lg text-sm tracking-wide disabled:opacity-40 disabled:cursor-not-allowed">
+                                        {yaInscrita ? 'Ya estás inscrita con este email' : 'Continuar →'}
                                     </button>
                                 </div>
                             )}
 
                             {step === 2 && (
                                 <div className="space-y-5 bg-earth-50/50 rounded-3xl p-8 md:p-10 border border-sage-100">
-                                    <div className="bg-sage-50 border border-sage-200/50 rounded-2xl p-4 text-center">
-                                        <p className="text-sm text-sage-700"><strong>{form.first_name} {form.last_name_1} {form.last_name_2}</strong> · {form.is_student === 'yes' ? 'Alumna' : 'No alumna'} · {form.room_type === 'doble' ? 'Doble' : 'Individual'} · <strong className="font-display text-lg">{getPrice()}€</strong></p>
+                                    <div className="bg-sage-50 border border-sage-200/50 rounded-2xl p-4 text-center space-y-1">
+                                        <p className="text-sm text-sage-700">
+                                            <strong>{form.first_name} {form.last_name_1} {form.last_name_2}</strong> · {isSinAlojamiento ? 'Actividades y comidas' : `${form.is_student === 'yes' ? 'Alumna' : 'Precio general'} · ${form.room_type === 'doble' ? 'Doble' : 'Individual'}`}
+                                        </p>
+                                        <p className="text-sm text-sage-600">
+                                            {form.horse_ride
+                                                ? <>{getBasePrice()}€ + 27€ (paseo a caballo) = <strong className="font-display text-lg">{getPrice()}€</strong></>
+                                                : <strong className="font-display text-lg">{getPrice()}€</strong>}
+                                        </p>
                                     </div>
 
                                     <div className="space-y-1.5">
@@ -721,7 +1066,8 @@
 
                                     <div className="space-y-1.5">
                                         <label className={labelClass}>Información que quieras compartir con nosotras</label>
-                                        <input className={inputClass('')} placeholder="Movilidad reducida, alergias, lo que consideres relevante..." value={form.medical_notes} onChange={e => setForm({...form, medical_notes: e.target.value})} />
+                                        <p className="text-[10px] text-sage-400 italic -mt-0.5 mb-1">Movilidad, linfedema, neuropatía, prótesis, lo que consideres relevante. Nos ayuda a adaptar las actividades.</p>
+                                        <input className={inputClass('')} placeholder="Lo que quieras contarnos" value={form.medical_notes} onChange={e => setForm({...form, medical_notes: e.target.value})} />
                                     </div>
 
                                     <label className="flex items-center gap-3 cursor-pointer">
@@ -729,10 +1075,22 @@
                                         <span className="text-sm text-sage-600">Necesitaría transporte desde algún punto cercano</span>
                                     </label>
 
+                                    <div className="space-y-1.5">
+                                        <label className={labelClass}>¿Cómo prefieres pagar?</label>
+                                        <div className="flex gap-3">
+                                            {[{ v: 'card', t: '💳 Tarjeta' }, { v: 'bizum', t: '📲 Bizum' }].map(m => (
+                                                <button key={m.v} type="button" onClick={() => setForm({...form, payment_method: m.v})} className={`flex-1 py-3.5 rounded-2xl border-2 font-heading font-semibold text-sm transition-all ${form.payment_method === m.v ? 'border-sage-500 bg-sage-50 text-sage-700' : 'border-sage-200/60 text-sage-400 hover:border-sage-300'}`}>
+                                                    {m.t}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <p className="text-[10px] text-sage-400 italic">Pagarás en la pasarela segura de tu banco. Nosotras no vemos los datos de tu tarjeta.</p>
+                                    </div>
+
                                     <div className="bg-earth-100/50 rounded-2xl p-5 space-y-4 border border-sage-200/30">
                                         <label className="flex items-start gap-3 cursor-pointer">
                                             <input type="checkbox" required className="mt-1 w-4 h-4 accent-sage-500 rounded" checked={form.accepts_privacy} onChange={e => setForm({...form, accepts_privacy: e.target.checked})} />
-                                            <span className="text-[11px] text-sage-500 leading-relaxed">Acepto la <a href="privacidad.html" target="_blank" className="text-sage-700 underline">Política de Privacidad</a>. Mis datos serán tratados por NEIKO HEALTH S.L. para gestionar mi inscripción al I Encuentro Cuid-Arte. *</span>
+                                            <span className="text-[11px] text-sage-500 leading-relaxed">Acepto la <a href="privacidad.html" target="_blank" className="text-sage-700 underline">Política de Privacidad</a> y las <a href="condiciones.html#eventos" target="_blank" className="text-sage-700 underline">condiciones de participación y cancelación</a>. Mis datos serán tratados por NEIKO HEALTH S.L. para gestionar mi inscripción al II Encuentro Cuid-Arte. *</span>
                                         </label>
 
                                         <label className="flex items-start gap-3 cursor-pointer">
@@ -753,6 +1111,17 @@
                                             {submitting ? 'Procesando...' : `Reservar — ${getPrice()}€`}
                                         </button>
                                     </div>
+                                </div>
+                            )}
+
+                            {step === 3 && (
+                                <div className="bg-sage-50 rounded-3xl p-10 border border-sage-200/50 text-center space-y-4">
+                                    <p className="text-5xl">🌿</p>
+                                    <h3 className="font-display text-2xl font-bold text-sage-900">Hemos recibido tu inscripción</h3>
+                                    <p className="text-sage-600 text-sm leading-relaxed max-w-md mx-auto">
+                                        Gracias, {form.first_name}. Te escribimos en unas horas al {form.phonePrefix} {form.phone} con el enlace para formalizar el pago de los {getPrice()}€ y confirmar tu plaza.
+                                    </p>
+                                    <p className="text-sage-400 text-xs">Si tienes cualquier duda mientras tanto, escríbenos por WhatsApp.</p>
                                 </div>
                             )}
                         </div>
@@ -783,7 +1152,7 @@
                         </div>
                     </section>
 
-                    {/* ═══ CONTACT ═══ */}
+                    {/* ═══ CONTACTO ═══ */}
                     <section className="py-20 bg-sage-50/50">
                         <div className="max-w-4xl mx-auto px-6 text-center">
                             <h2 className="font-display text-3xl font-bold text-sage-900 mb-3">¿Tienes dudas?</h2>
@@ -795,7 +1164,7 @@
                                     { name: 'Dra. Odile', phone: '34652552096', role: 'Directora' },
                                     { name: 'Hotel', phone: '34609166737', role: 'Alojamiento' },
                                 ].map((c, i) => (
-                                    <a key={i} href={`https://wa.me/${c.phone}?text=${encodeURIComponent('Hola, tengo una duda sobre el I Encuentro Cuid-Arte.')}`} target="_blank" rel="noopener noreferrer" className="bg-white rounded-2xl p-6 border border-sage-100 hover:border-sage-300 hover:shadow-md transition-all text-center group">
+                                    <a key={i} href={`https://wa.me/${c.phone}?text=${encodeURIComponent('Hola, tengo una duda sobre el II Encuentro Cuid-Arte.')}`} target="_blank" rel="noopener noreferrer" className="bg-white rounded-2xl p-6 border border-sage-100 hover:border-sage-300 hover:shadow-md transition-all text-center group">
                                         <div className="w-10 h-10 bg-sage-50 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-sage-100 transition-colors">
                                             <svg className="w-5 h-5 text-sage-500" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
                                         </div>
@@ -807,13 +1176,13 @@
                         </div>
                     </section>
 
-                    {/* ═══ FINAL CTA ═══ */}
+                    {/* ═══ CTA FINAL ═══ */}
                     <section className="py-24 grain" style={{ background: 'linear-gradient(160deg, #1a2e1a 0%, #2d4a2d 50%, #3d5f3d 100%)' }}>
                         <div className="max-w-3xl mx-auto px-6 text-center">
                             <p className="font-display text-4xl md:text-5xl font-bold text-white italic mb-4">¿Te animas?</p>
                             <div className="divider-leaf w-16 h-px mx-auto mb-6"></div>
                             <p className="text-sage-400 text-sm italic mb-8 font-display">Cuidarte hoy, es ganar vida mañana.</p>
-                            <p className="text-sand-400 font-heading font-bold text-xs uppercase tracking-[2px] mb-6">Plazas limitadas</p>
+                            <p className="text-sand-400 font-heading font-bold text-xs uppercase tracking-[2px] mb-6">25-27 septiembre · Plazas limitadas</p>
                             <a href="#registro" className="inline-flex items-center gap-3 bg-sand-400 hover:bg-sand-500 text-sage-900 font-heading font-bold py-4 px-12 rounded-full text-lg transition-all shadow-lg shadow-sand-400/20 hover:shadow-xl hover:-translate-y-0.5">
                                 Reservar mi plaza
                             </a>
@@ -833,8 +1202,10 @@
                         </div>
                     </footer>
 
-                    {/* ═══ WHATSAPP FLOAT ═══ */}
-                    <a href="https://wa.me/34664401328?text=Hola%2C%20tengo%20una%20duda%20sobre%20el%20I%20Encuentro%20Cuid-Arte." target="_blank" rel="noopener noreferrer" className="fixed bottom-6 left-6 z-50 bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl shadow-green-500/25 hover:shadow-2xl transition-all hover:scale-110">
+                    {/* ═══ WHATSAPP FLOTANTE ═══ */}
+                    {/* Mientras el banner de cookies esta abierto, el boton sube: en movil el banner
+                        ocupa 170px de alto y lo dejaba enterrado justo al entrar. */}
+                    <a href="https://wa.me/34664401328?text=Hola%2C%20tengo%20una%20duda%20sobre%20el%20II%20Encuentro%20Cuid-Arte." target="_blank" rel="noopener noreferrer" className={`fixed left-6 z-50 bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl shadow-green-500/25 hover:shadow-2xl transition-all hover:scale-110 ${showCookies ? 'bottom-52 md:bottom-28' : 'bottom-6'}`}>
                         <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492l4.644-1.217A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.153 0-4.144-.68-5.78-1.836l-.404-.263-2.75.72.735-2.686-.29-.421A9.94 9.94 0 012 12C2 6.486 6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></svg>
                     </a>
 

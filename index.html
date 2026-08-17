@@ -210,6 +210,10 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
+        // Franja del II Encuentro bajo la portada. En false mientras Odile revisa la pagina del
+        // evento: la URL funciona para quien la tenga, pero no se anuncia a todo el que entra.
+        const ANUNCIO_ENCUENTRO_VISIBLE = false;
+
 
         // --- HOOKS ---
         const useOnScreen = (options) => {
@@ -852,6 +856,27 @@
                         </Reveal>
                     </div>
                 </header>
+
+
+                {/* ANUNCIO DEL ENCUENTRO — la home es la pagina con mas visitas y hasta hoy
+                    solo enlazaba a los encuentros con una linea de texto perdida.
+                    ⏸ Oculto mientras Odile revisa la pagina: poner ANUNCIO_ENCUENTRO_VISIBLE = true
+                    (arriba del archivo) para encenderlo, junto con quitar el noindex de
+                    encuentro.html y devolverlo al sitemap. */}
+                {ANUNCIO_ENCUENTRO_VISIBLE && <section className="bg-cuidarte-dark-deep text-white py-8">
+                    <div className="container mx-auto px-6">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-5 text-center md:text-left">
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-cuidarte-mint mb-1">Encuentro presencial · plazas limitadas</p>
+                                <p className="text-lg md:text-xl font-bold">II Encuentro Cuid-Arte · 25-27 de septiembre</p>
+                                <p className="text-sm text-slate-300 mt-1">Tres días en la Sierra de Cazorla: nutrición, naturaleza, caballos y la Dra. Odile.</p>
+                            </div>
+                            <a href="/encuentro.html" className="flex-shrink-0 bg-white text-cuidarte-dark-deep font-bold text-sm px-7 py-3.5 rounded-full hover:bg-cuidarte-mint transition-colors">
+                                Ver el encuentro →
+                            </a>
+                        </div>
+                    </div>
+                </section>}
 
 
                 {/* MEDIA STRIP */}
