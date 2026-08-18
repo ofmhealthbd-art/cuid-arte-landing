@@ -768,6 +768,9 @@
                             <a href="#camino" className="hover:text-cuidarte-green-deep transition-colors">El Camino</a>
                             <a href="metodo.html" className="hover:text-cuidarte-green-deep transition-colors">El Método</a>
                             <a href="#admision" className="hover:text-cuidarte-green-deep transition-colors">Admisión</a>
+                            {ANUNCIO_ENCUENTRO_VISIBLE && <a href="/encuentro.html" className="flex items-center gap-1.5 text-cuidarte-gold-deep hover:text-cuidarte-dark-deep transition-colors">
+                                <span className="w-1.5 h-1.5 rounded-full bg-cuidarte-gold animate-pulse"></span> Encuentro
+                            </a>}
                             <a href="https://escuelacuidarte.com/acceso" className="flex items-center gap-1.5 text-slate-400 hover:text-cuidarte-green-deep transition-colors text-xs font-bold uppercase tracking-widest border border-slate-200 px-4 py-2 rounded-full hover:border-cuidarte-mint">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                                 Zona Alumnos
@@ -786,6 +789,9 @@
                             <a href="#camino" onClick={() => setIsMenuOpen(false)} className="text-lg font-heading font-bold text-slate-700">El Camino</a>
                             <a href="metodo.html" className="text-lg font-heading font-bold text-slate-700">El Método</a>
                             <a href="#admision" onClick={() => setIsMenuOpen(false)} className="text-lg font-heading font-bold text-slate-700">Admisión</a>
+                            {ANUNCIO_ENCUENTRO_VISIBLE && <a href="/encuentro.html" className="text-lg font-heading font-bold text-cuidarte-gold-deep flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-cuidarte-gold"></span> Encuentro · 25-27 sep
+                            </a>}
                             <a href="https://escuelacuidarte.com/acceso" className="text-slate-500 font-semibold text-sm text-center border border-slate-200 py-3 rounded-full">🔒 Zona Alumnos</a>
                             <button onClick={openAdmission} className="bg-cuidarte-green text-white w-full py-3.5 rounded-full font-bold mt-2 shadow-lg">Me gustaría unirme</button>
                         </div>
@@ -858,8 +864,25 @@
                 </header>
 
 
-                {/* ANUNCIO DEL ENCUENTRO — la home es la pagina con mas visitas y hasta hoy
-                    solo enlazaba a los encuentros con una linea de texto perdida.
+                {/* MEDIA STRIP */}
+                <section className="bg-white border-y border-slate-100 py-10 overflow-hidden">
+                    <div className="container mx-auto px-6">
+                        <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-8">Divulgando ciencia y esperanza en:</p>
+                        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-40 grayscale hover:grayscale-0 transition-all duration-700 hover:opacity-100">
+                            <span className="font-heading text-2xl font-black text-slate-800 tracking-tighter">EL MUNDO</span>
+                            <span className="font-heading text-2xl font-black text-slate-800 tracking-tighter">RTVE</span>
+                            <span className="font-heading text-2xl font-black text-slate-800 tracking-tighter">SABER VIVIR</span>
+                            <span className="font-heading text-2xl font-black text-slate-800 tracking-tighter">ELLE</span>
+                            <span className="font-heading text-2xl font-black text-slate-800 tracking-tighter">CADENA SER</span>
+                        </div>
+                    </div>
+                </section>
+
+
+                {/* ANUNCIO DEL ENCUENTRO — va DESPUES de los medios a proposito: quien llega frio
+                    primero ve quien es Odile y luego el evento; separar la portada de su franja de
+                    credibilidad debilitaba las dos. El enlace permanente vive en el menu y en el pie,
+                    porque esta franja se la pasa quien baje de largo.
                     Se apaga con ANUNCIO_ENCUENTRO_VISIBLE = false (arriba del archivo) cuando
                     el encuentro pase o se agoten las plazas. */}
                 {ANUNCIO_ENCUENTRO_VISIBLE && <section className="bg-cuidarte-dark-deep text-white py-8">
@@ -876,21 +899,6 @@
                         </div>
                     </div>
                 </section>}
-
-
-                {/* MEDIA STRIP */}
-                <section className="bg-white border-y border-slate-100 py-10 overflow-hidden">
-                    <div className="container mx-auto px-6">
-                        <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-8">Divulgando ciencia y esperanza en:</p>
-                        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-40 grayscale hover:grayscale-0 transition-all duration-700 hover:opacity-100">
-                            <span className="font-heading text-2xl font-black text-slate-800 tracking-tighter">EL MUNDO</span>
-                            <span className="font-heading text-2xl font-black text-slate-800 tracking-tighter">RTVE</span>
-                            <span className="font-heading text-2xl font-black text-slate-800 tracking-tighter">SABER VIVIR</span>
-                            <span className="font-heading text-2xl font-black text-slate-800 tracking-tighter">ELLE</span>
-                            <span className="font-heading text-2xl font-black text-slate-800 tracking-tighter">CADENA SER</span>
-                        </div>
-                    </div>
-                </section>
 
 
                 {/* SECCIÓN: SENTIMIENTOS (Validación Emocional) */}
@@ -1427,6 +1435,7 @@
                             <div className="flex gap-8 font-semibold flex-wrap justify-center">
                                 <a href="legal.html" className="hover:text-cuidarte-green-deep transition-colors">Aviso Legal</a>
                                 <a href="privacidad.html" className="hover:text-cuidarte-green-deep transition-colors">Privacidad</a>
+                                {ANUNCIO_ENCUENTRO_VISIBLE && <a href="/encuentro.html" className="hover:text-cuidarte-green-deep transition-colors">II Encuentro · 25-27 sep</a>}
                                 <a href="condiciones.html" className="hover:text-cuidarte-green-deep transition-colors">Condiciones y Devoluciones</a>
                                 <a href="politica-cookies.html" className="hover:text-cuidarte-green-deep transition-colors">Cookies</a>
                                 <a href="#" className="hover:text-cuidarte-green-deep transition-colors">Contacto</a>
