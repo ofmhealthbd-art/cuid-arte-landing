@@ -211,6 +211,31 @@
             const [toast, setToast] = useState({ msg: '', visible: false, type: 'success' });
             const [showCookies, setShowCookies] = useState(!localStorage.getItem('cookies_accepted'));
 
+            // De donde viene quien abre esta pagina. Se guarda al ENTRAR y sobrevive a recargas y
+            // a que la persona navegue: si se leyera al enviar el formulario, cualquier recarga
+            // borraria la campaña de la URL y la inscripcion quedaria sin atribuir. El desplegable
+            // "como nos conociste" seguira estando, pero eso es lo que ella recuerda; esto es lo
+            // que de verdad ocurrio.
+            useEffect(() => {
+                try {
+                    if (sessionStorage.getItem('enc_atribucion')) return;
+                    const q = new URLSearchParams(location.search);
+                    const datos = {
+                        utm_source: q.get('utm_source'), utm_medium: q.get('utm_medium'),
+                        utm_campaign: q.get('utm_campaign'), utm_content: q.get('utm_content'),
+                        referrer: document.referrer || null,
+                    };
+                    if (Object.values(datos).some(Boolean)) {
+                        sessionStorage.setItem('enc_atribucion', JSON.stringify(datos));
+                    }
+                } catch (e) { /* sin sessionStorage se inscribe igual: esto nunca bloquea una venta */ }
+            }, []);
+
+            const atribucion = () => {
+                try { return JSON.parse(sessionStorage.getItem('enc_atribucion') || '{}'); }
+                catch (e) { return {}; }
+            };
+
             // Disponibilidad. El rol anon NO puede leer la tabla (la RLS solo permite INSERT),
             // asi que va por RPC: la funcion devuelve contadores agregados, no filas.
             useEffect(() => {
@@ -397,6 +422,7 @@
                             accepts_privacy: true,
                             accepts_marketing: form.accepts_marketing,
                             payment_method: form.payment_method,
+                            ...atribucion(),
                         },
                     });
 
