@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="/analytics.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Termina tu reserva | II Encuentro Cuid-Arte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: {
+                'cuidarte-green': '#6BA06B', 'cuidarte-mint': '#CDE8CD', 'cuidarte-gold': '#D4AF37',
+                'cuidarte-dark': '#1A2E1A', 'cuidarte-green-deep': '#4F7F50', 'cuidarte-muted': '#5B6F5B',
+            }, fontFamily: { sans: ['Open Sans','sans-serif'], heading: ['Montserrat','sans-serif'] } } }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-[#FAF9F6] font-sans text-cuidarte-dark min-h-screen flex items-center justify-center p-4">
+
+<main class="w-full max-w-md">
+    <div class="bg-white rounded-3xl shadow-[0_4px_24px_rgba(26,46,26,0.08)] overflow-hidden">
+
+        <div class="bg-gradient-to-br from-cuidarte-green to-cuidarte-green-deep border-b-4 border-cuidarte-gold px-6 py-7 text-center">
+            <p class="font-heading font-bold text-white text-xl">Cuid-Arte</p>
+            <p class="text-white/85 text-[11px] uppercase tracking-[1.5px] mt-1">II Encuentro &middot; 25-27 septiembre 2026</p>
+        </div>
+
+        <div id="contenido" class="px-6 py-8">
+            <p id="cargando" class="text-center text-cuidarte-muted text-sm py-6">Un momento, estamos buscando tu reserva&hellip;</p>
+        </div>
+    </div>
+
+    <p class="text-center text-xs text-cuidarte-muted mt-5 leading-relaxed">
+        &iquest;Alguna duda? Escr&iacute;benos por WhatsApp al <strong>+34 664 40 13 28</strong><br>
+        NEIKO HEALTH, S.L. &middot; CIF B22928311
+    </p>
+</main>
+
+<script>
+// Pagina de "termina tu pago" del II Encuentro. Todo lo decide el token del enlace: esta pantalla
+// no sabe el importe ni de quien es la reserva hasta que el servidor se lo dice, y no puede
+// cambiarlos. Si el enlace no vale, aqui no aparece ni un dato.
+const FN = 'https://hapzytcloqivthmkodjg.supabase.co/functions/v1/encuentro-retomar';
+const token = new URLSearchParams(location.search).get('t') || '';
+const cont = document.getElementById('contenido');
+
+const euros = (n) => Number(n).toLocaleString('es-ES', { minimumFractionDigits: 0 }) + '&euro;';
+
+function aviso(titulo, texto, conWhatsapp) {
+    cont.innerHTML = '<p class="font-heading font-bold text-lg text-center mb-2">' + titulo + '</p>'
+        + '<p class="text-sm text-cuidarte-muted text-center leading-relaxed">' + texto + '</p>'
+        + (conWhatsapp
+            ? '<div class="text-center mt-6"><a href="https://wa.me/34664401328" class="inline-block bg-cuidarte-green hover:bg-cuidarte-green-deep text-white font-heading font-bold text-sm px-7 py-3.5 rounded-full transition-all">Escribirnos por WhatsApp</a></div>'
+            : '');
+}
+
+const ERRORES = {
+    enlace_invalido: ['Este enlace no es v&aacute;lido', 'Puede que se haya copiado a medias. Escr&iacute;benos y te mandamos uno nuevo.'],
+    enlace_caducado: ['Este enlace ya ha caducado', 'Por seguridad los enlaces de pago duran unos d&iacute;as. Escr&iacute;benos y te enviamos uno nuevo al momento.'],
+    no_se_pudo_abrir_el_pago: ['No hemos podido abrir el pago', 'Prueba de nuevo en un minuto. Si sigue igual, escr&iacute;benos y lo resolvemos contigo.'],
+};
+
+// Redsys exige un POST con los parametros firmados: no vale con redirigir.
+function irAlBanco(r) {
+    const f = document.createElement('form');
+    f.method = 'POST';
+    f.action = r.url;
+    [['Ds_SignatureVersion', r.Ds_SignatureVersion], ['Ds_MerchantParameters', r.Ds_MerchantParameters], ['Ds_Signature', r.Ds_Signature]]
+        .forEach(function (par) {
+            const i = document.createElement('input');
+            i.type = 'hidden'; i.name = par[0]; i.value = par[1];
+            f.appendChild(i);
+        });
+    document.body.appendChild(f);
+    f.submit();
+}
+
+async function pagar(metodo, boton) {
+    cont.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+    boton.textContent = 'Abriendo el pago…';
+    try {
+        const r = await fetch(FN, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ t: token, accion: 'pagar', metodo: metodo }),
+        });
+        const d = await r.json();
+        if (!r.ok || !d.redsys) {
+            const e = ERRORES[d.error] || ERRORES.no_se_pudo_abrir_el_pago;
+            aviso(e[0], e[1], true);
+            return;
+        }
+        irAlBanco(d.redsys);
+    } catch (e) {
+        aviso(ERRORES.no_se_pudo_abrir_el_pago[0], ERRORES.no_se_pudo_abrir_el_pago[1], true);
+    }
+}
+
+function pintarReserva(d) {
+    const saludo = d.first_name ? d.first_name + ', ' : '';
+    cont.innerHTML = ''
+        + '<h1 class="font-heading font-bold text-xl text-center leading-snug mb-2">' + saludo + 'tu plaza sigue guardada</h1>'
+        + '<p class="text-sm text-cuidarte-muted text-center leading-relaxed mb-6">Solo queda terminar el pago. No hace falta que rellenes nada m&aacute;s.</p>'
+        + '<div class="bg-cuidarte-mint/25 rounded-2xl px-5 py-4 mb-6">'
+        +   '<span class="text-xs uppercase tracking-wider text-cuidarte-muted font-semibold">Tu modalidad</span>'
+        +   '<p class="text-sm leading-relaxed mt-2">' + d.modalidad + (d.paseo_caballo ? ' &middot; con paseo a caballo' : '') + '</p>'
+        +   '<div class="flex justify-between items-baseline mt-4 pt-4 border-t border-cuidarte-green/15">'
+        +     '<span class="text-xs uppercase tracking-wider text-cuidarte-muted font-semibold">Total</span>'
+        +     '<span class="font-heading font-bold text-3xl text-cuidarte-green-deep">' + euros(d.importe) + '</span>'
+        +   '</div>'
+        + '</div>'
+        + '<p class="text-xs text-cuidarte-muted text-center mb-3">&iquest;C&oacute;mo prefieres pagar?</p>'
+        + '<div class="grid grid-cols-2 gap-3">'
+        +   '<button type="button" data-m="card" class="border-2 border-cuidarte-green/30 hover:border-cuidarte-green hover:bg-cuidarte-mint/20 font-heading font-semibold text-sm py-4 rounded-2xl transition-all disabled:opacity-40">&#128179; Tarjeta</button>'
+        +   '<button type="button" data-m="bizum" class="border-2 border-cuidarte-green/30 hover:border-cuidarte-green hover:bg-cuidarte-mint/20 font-heading font-semibold text-sm py-4 rounded-2xl transition-all disabled:opacity-40">&#128241; Bizum</button>'
+        + '</div>'
+        + '<p class="text-[11px] text-cuidarte-muted text-center mt-5 leading-relaxed">Pago seguro a trav&eacute;s de Redsys. Si el pago no llega a completarse no se te cobra nada y puedes volver a intentarlo desde este mismo enlace.</p>';
+
+    cont.querySelectorAll('button[data-m]').forEach(function (b) {
+        b.addEventListener('click', function () { pagar(b.dataset.m, b); });
+    });
+}
+
+(async function () {
+    if (!token) { aviso(ERRORES.enlace_invalido[0], ERRORES.enlace_invalido[1], true); return; }
+    try {
+        const r = await fetch(FN + '?t=' + encodeURIComponent(token) + '&accion=info');
+        const d = await r.json();
+        if (r.ok && d.ok) { pintarReserva(d); return; }
+        if (d.error === 'ya_pagada') {
+            aviso('Tu plaza ya est&aacute; pagada &#128154;',
+                'No tienes que hacer nada m&aacute;s. Unos d&iacute;as antes del encuentro te escribimos con el programa y todo lo que necesitas llevar.', false);
+            return;
+        }
+        const e = ERRORES[d.error] || ERRORES.enlace_invalido;
+        aviso(e[0], e[1], true);
+    } catch (e) {
+        aviso('No hemos podido cargar tu reserva', 'Prueba a abrir el enlace de nuevo en un minuto. Si sigue igual, escr&iacute;benos.', true);
+    }
+})();
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /pago.html
 Disallow: /pago-ok.html
+Disallow: /pagar-encuentro.html
 Disallow: /gracias.html
 Disallow: /setter-preview.html
 
