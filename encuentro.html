@@ -158,6 +158,8 @@
         const FORM_VACIO = {
             first_name: '', last_name_1: '', last_name_2: '', email: '', phone: '', phonePrefix: '+34',
             experience_type: '', is_student: '', room_type: '', companion_name: '', horse_ride: false,
+            with_companion: false, companion_first_name: '', companion_last_name: '',
+            companion_phone: '', companion_email: '', companion_dietary_needs: '', companion_horse_ride: false,
             age_range: '', province: '', relation_to_cancer: '',
             cancer_type: '', cancer_stage: '', in_active_treatment: false,
             how_found: '', first_event: '', motivation: '',
@@ -303,7 +305,6 @@
                         .from('clientes')
                         .select('email, first_name')
                         .eq('email', form.email.toLowerCase().trim())
-                        .eq('status', 'active')
                         .maybeSingle();
                     setVerified(!!data);
                     if (data) {
@@ -311,7 +312,7 @@
                         showToast('Verificada. Tienes precio especial de alumna.', 'success');
                     } else {
                         setForm(prev => ({ ...prev, is_student: 'no' }));
-                        showToast('No hemos encontrado tu email como alumna activa.', 'info');
+                        showToast('No hemos encontrado tu email en la Escuela.', 'info');
                     }
                 } catch (e) { console.error(e); }
                 finally { setVerifying(false); }
@@ -326,7 +327,12 @@
                 const tier = form.is_student === 'yes' ? 'student' : 'external';
                 return PRICES[tier]?.[form.room_type] || 0;
             };
-            const getPrice = () => getBasePrice() + (form.horse_ride ? PRICES.horse : 0);
+            // La tarifa es POR PERSONA: dos en una doble son dos veces la tarifa, y con eso la
+            // habitacion queda cerrada para ellas. El paseo a caballo se suma por cada una que lo pida.
+            const personasReserva = () => (form.with_companion ? 2 : 1);
+            const getPrice = () => getBasePrice() * personasReserva()
+                + (form.horse_ride ? PRICES.horse : 0)
+                + (form.with_companion && form.companion_horse_ride ? PRICES.horse : 0);
 
             // Salto a la pasarela del banco: Redsys exige un POST con los parametros firmados.
             const irAlBanco = (redsys) => {
@@ -382,6 +388,8 @@
                 if (!form.experience_type) e.experience_type = true;
                 if (needsRoom && !form.is_student) e.is_student = true;
                 if (needsRoom && !form.room_type) e.room_type = true;
+                if (form.with_companion && !form.companion_first_name) e.companion_first_name = true;
+                if (form.with_companion && !form.companion_last_name) e.companion_last_name = true;
                 if (!form.age_range) e.age_range = true;
                 if (!form.relation_to_cancer) e.relation_to_cancer = true;
                 if (!form.how_found) e.how_found = true;
@@ -407,6 +415,13 @@
                             room_type: needsRoom ? form.room_type : null,
                             horse_ride: form.horse_ride,
                             companion_name: form.companion_name || null,
+                            with_companion: form.with_companion === true,
+                            companion_first_name: form.companion_first_name || null,
+                            companion_last_name: form.companion_last_name || null,
+                            companion_phone: form.companion_phone || null,
+                            companion_email: form.companion_email ? form.companion_email.toLowerCase().trim() : null,
+                            companion_dietary_needs: form.companion_dietary_needs || null,
+                            companion_horse_ride: form.with_companion && form.companion_horse_ride === true,
                             age_range: form.age_range || null,
                             province: form.province || null,
                             relation_to_cancer: form.relation_to_cancer || null,
@@ -950,7 +965,7 @@
                                     {/* Alumna + habitación */}
                                     {needsRoom && (<>
                                     <div className="space-y-1.5">
-                                        <label className={labelClass}>¿Eres alumna de Escuela Cuid-Arte? *</label>
+                                        <label className={labelClass}>¿Eres o has sido alumna de Escuela Cuid-Arte? *</label>
                                         <p className="text-[10px] text-sage-400 italic -mt-0.5 mb-1">Si eres alumna, usa el mismo email de tu registro para verificar</p>
                                         <div className="flex gap-3">
                                             <button type="button" onClick={() => { setForm({...form, is_student: 'yes'}); verifyStudent(); setErrors({...errors, is_student: false}); }} className={`flex-1 py-3.5 rounded-2xl border-2 font-heading font-semibold text-sm transition-all ${groupBorder('is_student', form.is_student === 'yes')}`}>
@@ -970,7 +985,7 @@
                                         <label className={labelClass}>Tipo de habitación *</label>
                                         <div className="flex gap-3">
                                             {['doble', 'individual'].map(t => (
-                                                <button key={t} type="button" onClick={() => { setForm({...form, room_type: t}); setErrors({...errors, room_type: false}); }} className={`flex-1 py-5 rounded-2xl border-2 font-heading font-semibold text-sm transition-all ${groupBorder('room_type', form.room_type === t)}`}>
+                                                <button key={t} type="button" onClick={() => { setForm({...form, room_type: t, ...(t === 'individual' ? { with_companion: false } : {}) }); setErrors({...errors, room_type: false}); }} className={`flex-1 py-5 rounded-2xl border-2 font-heading font-semibold text-sm transition-all ${groupBorder('room_type', form.room_type === t)}`}>
                                                     {t === 'doble' ? '🛏️ Doble' : '🛏️ Individual'}
                                                     {form.is_student && <span className="block font-display text-xl mt-1">{form.is_student === 'yes' ? PRICES.student[t] : PRICES.external[t]}€</span>}
                                                 </button>
@@ -979,13 +994,71 @@
                                         <FieldError field="room_type">Elige el tipo de habitación</FieldError>
                                     </div>
 
-                                    {form.room_type === 'doble' && (
-                                        <div className="space-y-1.5">
-                                            <label className={labelClass}>Nombre de tu acompañante (opcional)</label>
-                                            <input className={inputClass('')} placeholder="Si ya sabes con quién compartirás" value={form.companion_name} onChange={e => setForm({...form, companion_name: e.target.value})} />
-                                        </div>
-                                    )}
                                     </>)}
+
+                                    {/* Reserva para DOS en un solo pago (31-ago-2026). Nace de un caso real: las
+                                        alumnas mas interesadas vienen acompanadas y hasta hoy tenian que rellenar
+                                        el formulario dos veces, pagar por separado y cruzar los dedos para dormir
+                                        juntas. Solo cabe en habitacion doble o en la modalidad sin alojamiento:
+                                        una individual es para una. */}
+                                    {((needsRoom && form.room_type === 'doble') || isSinAlojamiento) && (
+                                    <div className="space-y-3">
+                                        <button type="button" onClick={() => setForm({...form, with_companion: !form.with_companion})} className={`w-full text-left p-5 rounded-2xl border-2 transition-all ${form.with_companion ? 'border-sage-500 bg-sage-50' : 'border-sage-200/60 hover:border-sage-300'}`}>
+                                            <div className="flex justify-between items-start gap-4">
+                                                <div className="flex gap-3">
+                                                    <span className="text-2xl">👯‍♀️</span>
+                                                    <div>
+                                                        <p className="font-heading font-semibold text-sm text-sage-800">Vengo acompañada</p>
+                                                        <p className="text-[11px] text-sage-500 mt-1 leading-relaxed">
+                                                            {needsRoom
+                                                                ? 'Reserváis la habitación doble entera y pagáis las dos de una vez. Si eres o has sido alumna, tu acompañante tiene tu mismo precio.'
+                                                                : 'Venís las dos a las actividades y las comidas, en un solo pago.'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className={`w-6 h-6 rounded-lg border-2 flex-shrink-0 flex items-center justify-center ${form.with_companion ? 'border-sage-500 bg-sage-500' : 'border-sage-300'}`}>
+                                                    {form.with_companion && <span className="text-white text-xs">✓</span>}
+                                                </div>
+                                            </div>
+                                        </button>
+
+                                        {form.with_companion && (
+                                        <div className="space-y-4 p-5 rounded-2xl bg-sage-50/60 border border-sage-200/60">
+                                            <p className="text-[11px] text-sage-500 leading-relaxed">Necesitamos sus datos para el hotel y para las comidas.</p>
+                                            <div className="grid md:grid-cols-2 gap-4">
+                                                <div className="space-y-1.5">
+                                                    <label className={labelClass}>Su nombre *</label>
+                                                    <input className={inputClass('companion_first_name')} value={form.companion_first_name} onChange={e => { setForm({...form, companion_first_name: e.target.value}); setErrors({...errors, companion_first_name: false}); }} />
+                                                    <FieldError field="companion_first_name">Necesitamos su nombre</FieldError>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className={labelClass}>Sus apellidos *</label>
+                                                    <input className={inputClass('companion_last_name')} value={form.companion_last_name} onChange={e => { setForm({...form, companion_last_name: e.target.value}); setErrors({...errors, companion_last_name: false}); }} />
+                                                    <FieldError field="companion_last_name">Necesitamos sus apellidos</FieldError>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className={labelClass}>Su teléfono</label>
+                                                    <input className={inputClass('')} value={form.companion_phone} onChange={e => setForm({...form, companion_phone: e.target.value})} />
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className={labelClass}>Su email</label>
+                                                    <input type="email" className={inputClass('')} value={form.companion_email} onChange={e => setForm({...form, companion_email: e.target.value})} />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className={labelClass}>Sus alergias o intolerancias</label>
+                                                <textarea rows="2" className={inputClass('')} placeholder="Lo que no puede comer. Si no hay nada, déjalo en blanco." value={form.companion_dietary_needs} onChange={e => setForm({...form, companion_dietary_needs: e.target.value})} />
+                                            </div>
+                                            <button type="button" onClick={() => setForm({...form, companion_horse_ride: !form.companion_horse_ride})} className={`w-full text-left p-4 rounded-2xl border-2 transition-all ${form.companion_horse_ride ? 'border-sand-400 bg-sand-400/10' : 'border-sage-200/60 hover:border-sand-300'}`}>
+                                                <div className="flex justify-between items-center gap-4">
+                                                    <p className="font-heading font-semibold text-sm text-sage-800">🐴 Ella también quiere el paseo a caballo</p>
+                                                    <span className="font-display text-lg text-sand-600">+{PRICES.horse}€</span>
+                                                </div>
+                                            </button>
+                                        </div>
+                                        )}
+                                    </div>
+                                    )}
 
                                     {/* Paseo a caballo opcional */}
                                     {form.experience_type && (
