@@ -1,0 +1,9 @@
+{
+  "name": "cuid-arte-landing-build",
+  "private": true,
+  "type": "module",
+  "description": "Compila el JSX de las paginas al construir la imagen, para que no lo compile el navegador de cada visitante.",
+  "dependencies": {
+    "esbuild": "0.23.1"
+  }
+}

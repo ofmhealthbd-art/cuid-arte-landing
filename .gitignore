@@ -1,0 +1,10 @@
+# El compilador se instala al construir la imagen, no vive en el repo.
+build/node_modules/
+# Sin lock a proposito: esbuild trae binario por plataforma y un lock hecho en
+# Windows rompe la instalacion en la imagen alpine. La version va clavada en
+# build/package.json.
+build/package-lock.json
+
+# Salida del compilador. Se genera dentro de la imagen; en el repo solo vive el
+# fuente (el JSX dentro del HTML).
+js/
