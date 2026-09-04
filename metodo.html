@@ -94,21 +94,30 @@
         const { useState, useEffect, useRef } = React;
 
         // --- HOOKS ---
-        const useOnScreen = (options) => {
+        // `nacerVisible` = este bloque YA esta en pantalla al cargar, asi que no se
+        // anima: se pinta puesto. Animar la primera pantalla dejaba la cabecera y el
+        // menu sobre un hueco EN BLANCO — medido el 4-sep en produccion: React montaba
+        // a los 221 ms y el contenido no estaba entero hasta 1,33 s, y por el camino
+        // parecia otra pagina distinta.
+        // Se marca a mano y no se mide: cuando corre el efecto, Tailwind (que tambien
+        // llega por CDN) aun no ha aplicado sus estilos, y medir ahi da posiciones
+        // falsas — comprobado, el heroe salia en top 1244 con la ventana en 1137.
+        const useOnScreen = (options, nacerVisible = false) => {
             const ref = useRef(null);
-            const [isVisible, setIsVisible] = useState(false);
+            const [isVisible, setIsVisible] = useState(nacerVisible);
             useEffect(() => {
+                if (isVisible) return;
                 const observer = new IntersectionObserver(([entry]) => {
                     if (entry.isIntersecting) { setIsVisible(true); observer.disconnect(); }
                 }, options);
                 if (ref.current) observer.observe(ref.current);
                 return () => { if (ref.current) observer.unobserve(ref.current); };
-            }, [ref, options]);
+            }, [ref, options, isVisible]);
             return [ref, isVisible];
         };
 
-        const Reveal = ({ children, className = "", delay = "" }) => {
-            const [ref, isVisible] = useOnScreen({ threshold: 0.1 });
+        const Reveal = ({ children, className = "", delay = "", nacerVisible = false }) => {
+            const [ref, isVisible] = useOnScreen({ threshold: 0.1 }, nacerVisible);
             return <div ref={ref} className={`reveal-hidden ${isVisible ? 'reveal-visible' : ''} ${delay} ${className}`}>{children}</div>;
         };
 
@@ -195,7 +204,7 @@
                     {/* HERO MÉTODO */}
                     <header className="pt-16 pb-20 bg-gradient-dawn text-center px-6 relative overflow-hidden">
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-cuidarte-mint/30 rounded-full blur-3xl -z-10"></div>
-                        <Reveal>
+                        <Reveal nacerVisible>
                             <div className="inline-flex items-center gap-2 bg-white border border-cuidarte-mint text-cuidarte-green-deep px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-6 shadow-sm">
                                 <Microscope className="w-4 h-4" /> Evidencia Científica
                             </div>

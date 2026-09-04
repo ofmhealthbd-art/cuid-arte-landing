@@ -300,22 +300,31 @@
 
 
         // --- HOOKS ---
-        const useOnScreen = (options) => {
+        // `nacerVisible` = este bloque YA esta en pantalla al cargar, asi que no se
+        // anima: se pinta puesto. Animar la primera pantalla dejaba la cabecera y el
+        // menu sobre un hueco EN BLANCO — medido el 4-sep en produccion: React montaba
+        // a los 221 ms y el contenido no estaba entero hasta 1,33 s, y por el camino
+        // parecia otra pagina distinta.
+        // Se marca a mano y no se mide: cuando corre el efecto, Tailwind (que tambien
+        // llega por CDN) aun no ha aplicado sus estilos, y medir ahi da posiciones
+        // falsas — comprobado, el heroe salia en top 1244 con la ventana en 1137.
+        const useOnScreen = (options, nacerVisible = false) => {
             const ref = useRef(null);
-            const [isVisible, setIsVisible] = useState(false);
+            const [isVisible, setIsVisible] = useState(nacerVisible);
             useEffect(() => {
+                if (isVisible) return;
                 const observer = new IntersectionObserver(([entry]) => {
                     if (entry.isIntersecting) { setIsVisible(true); observer.disconnect(); }
                 }, options);
                 if (ref.current) observer.observe(ref.current);
                 return () => { if (ref.current) observer.unobserve(ref.current); };
-            }, [ref, options]);
+            }, [ref, options, isVisible]);
             return [ref, isVisible];
         };
 
 
-        const Reveal = ({ children, delay = "", className = "" }) => {
-            const [ref, isVisible] = useOnScreen({ threshold: 0.1 });
+        const Reveal = ({ children, delay = "", className = "", nacerVisible = false }) => {
+            const [ref, isVisible] = useOnScreen({ threshold: 0.1 }, nacerVisible);
             return <div ref={ref} className={`reveal-hidden ${isVisible ? 'reveal-visible' : ''} ${delay} ${className}`}>{children}</div>;
         };
 
@@ -890,7 +899,7 @@
                     <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-cuidarte-gold/15 blur-[100px] -z-10 mix-blend-multiply"></div>
                     
                     <div className="container mx-auto px-6 lg:px-12 grid lg:grid-cols-2 gap-16 items-center">
-                        <Reveal className="space-y-8 text-center lg:text-left">
+                        <Reveal nacerVisible className="space-y-8 text-center lg:text-left">
                             <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-md text-cuidarte-dark-deep px-5 py-2.5 rounded-full text-xs font-bold tracking-widest uppercase border border-cuidarte-mint shadow-sm mx-auto lg:mx-0">
                                 <Leaf className="w-4 h-4 text-cuidarte-green" />
                                 Bienestar basado en evidencia
@@ -922,7 +931,7 @@
                         </Reveal>
                         
                         {/* IMAGEN DE ODILE - Estética más limpia */}
-                        <Reveal delay="delay-200" className="relative mx-auto lg:mr-0 w-full max-w-sm lg:max-w-sm">
+                        <Reveal nacerVisible className="relative mx-auto lg:mr-0 w-full max-w-sm lg:max-w-sm">
                             <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl aspect-[4/5] border-[10px] border-white group">
                                 {/* Usamos una imagen que evoque más calma/luz natural si es posible, o la misma con contexto visual limpio */}
                                 <img 
