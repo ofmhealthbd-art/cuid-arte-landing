@@ -11,6 +11,17 @@
     <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Interruptor del respaldo. Nada de animaciones CSS para esto: en una pestana de
+         fondo no corren, y la red de seguridad se quedaba sin saltar nunca (comprobado
+         el 4-sep: opacidad 0 a los 2,5 s). Con temporizador si salta, aunque tarde mas. -->
+    <script>
+      document.documentElement.classList.add('con-js');
+      setTimeout(function () {
+        var respaldo = document.getElementById('portada-estatica');
+        if (respaldo) respaldo.style.opacity = '1';   // React no ha montado: se destapa
+      }, 900);
+    </script>
     <title>Cuid-Arte | Ciencia y Calidez para tu Recuperación</title>
     <meta name="description" content="Escuela Cuid-Arte: formación y acompañamiento para tu recuperación, con base científica y trato cercano. Dirigida por la Dra. Odile Fernández.">
     <link rel="canonical" href="https://escuelacuidarte.com/">
@@ -155,6 +166,13 @@
            llega por CDN, así que una portada que dependiera de él se vería sin formato justo
            durante los segundos que esto existe — que era exactamente el problema. -->
       <style>
+        /* Con JavaScript, este respaldo NO se pinta: React monta en ~120 ms y se lo lleva
+           por delante, asi que en una carga normal no lo ve nadie — ensenar otra portada
+           durante una decima de segundo es peor que no ensenar nada. La clase la pone el
+           script de la cabecera; si tarda mas de lo debido, ese mismo script lo destapa.
+           Sin JavaScript no hay clase, y entonces se ve entero desde el primer pintado,
+           que es justo lo que tiene que pasar. */
+        html.con-js #portada-estatica{opacity:0}
         #portada-estatica{--verde:#6BA06B;--verde-hondo:#558055;--menta:#CDE8CD;--oro:#D4AF37;
           --tinta:#1A2530;--texto:#34495E;
           font-family:'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
