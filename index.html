@@ -4,6 +4,13 @@
     <script src="/analytics.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- La portada la pinta React tras compilarse en el navegador, asi que hasta que no
+         llegan estos CDN no hay pagina. Abrir la conexion en cuanto se lee el HTML ahorra
+         el DNS y el TLS de cada uno, que en movil es donde mas se nota. -->
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <title>Cuid-Arte | Ciencia y Calidez para tu Recuperación</title>
     <meta name="description" content="Escuela Cuid-Arte: formación y acompañamiento para tu recuperación, con base científica y trato cercano. Dirigida por la Dra. Odile Fernández.">
     <link rel="canonical" href="https://escuelacuidarte.com/">
@@ -141,55 +148,132 @@
 </head>
 <body class="bg-white overflow-x-hidden antialiased">
     <div id="root">
-      <!-- Contenido estático para buscadores y bots de IA (React lo reemplaza al montar). -->
-      <div style="max-width:820px;margin:0 auto;padding:40px 24px;font-family:'Open Sans',sans-serif;color:#34495E;line-height:1.6">
-        <p style="font-size:13px;color:#6BA06B;font-weight:700;text-transform:uppercase;letter-spacing:.1em">Método Dra. Odile Fernández · Bienestar basado en evidencia</p>
-        <h1 style="font-size:34px;color:#1A2530;font-family:'Montserrat',sans-serif;margin:8px 0">Recupera tu equilibrio con ciencia y amor propio</h1>
-        <p>Cuid-Arte es un <strong>programa formativo y de acompañamiento integral para personas con cáncer</strong>, dirigido por la Dra. Odile Fernández. Unimos rigor científico y humanidad para que sientas seguridad, apoyo y protagonismo en tu proceso, en cada fase: recién diagnosticada, en tratamiento o en recuperación. <em>No es un servicio médico ni sustituye a tu equipo sanitario.</em></p>
+      <!-- Portada estática: es lo que se ve mientras el navegador descarga React y Babel y compila
+           la página (React la reemplaza entera al montar), y es también lo que leen los buscadores
+           y los bots de IA. El texto es el mismo que el de la portada real y no puede divergir.
+           Va con estilos PROPIOS y sin una sola clase de Tailwind a propósito: Tailwind también
+           llega por CDN, así que una portada que dependiera de él se vería sin formato justo
+           durante los segundos que esto existe — que era exactamente el problema. -->
+      <style>
+        #portada-estatica{--verde:#6BA06B;--verde-hondo:#558055;--menta:#CDE8CD;--oro:#D4AF37;
+          --tinta:#1A2530;--texto:#34495E;
+          font-family:'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+          color:var(--texto);line-height:1.6}
+        #portada-estatica .pe-aviso{background:var(--tinta);color:#e2e8f0;font-size:11px;
+          letter-spacing:.03em;text-align:center;padding:10px 16px}
+        #portada-estatica .pe-aviso b{color:#fff;letter-spacing:.08em}
+        #portada-estatica .pe-aviso .pe-menta{color:var(--menta)}
+        #portada-estatica .pe-cabecera{display:flex;align-items:center;gap:12px;
+          max-width:1180px;margin:0 auto;padding:22px 24px}
+        #portada-estatica .pe-marca{font-family:'Montserrat',-apple-system,'Segoe UI',sans-serif;
+          font-weight:700;font-size:26px;color:var(--tinta);line-height:1.1}
+        #portada-estatica .pe-marca span{color:var(--oro)}
+        #portada-estatica .pe-lema{font-size:9px;letter-spacing:.14em;color:#8a97a3;
+          text-transform:uppercase;margin-top:2px}
+        #portada-estatica .pe-hero{max-width:1180px;margin:0 auto;padding:36px 24px 8px}
+        #portada-estatica .pe-sello{display:inline-block;border:1px solid var(--menta);
+          border-radius:999px;padding:8px 18px;font-size:11px;font-weight:700;letter-spacing:.14em;
+          text-transform:uppercase;color:var(--tinta);background:#fff;margin:0}
+        #portada-estatica h1{font-family:'Montserrat',-apple-system,'Segoe UI',sans-serif;
+          font-size:clamp(34px,6vw,64px);line-height:1.08;font-weight:700;color:var(--tinta);
+          margin:22px 0 0;max-width:14ch}
+        #portada-estatica h1 em{display:block;color:var(--verde);font-weight:500;font-style:italic}
+        #portada-estatica .pe-entrada{font-size:clamp(17px,2.2vw,22px);color:#5a6b7b;
+          max-width:34em;margin:22px 0 0}
+        #portada-estatica .pe-entrada .pe-fino{display:block;font-size:14px;color:#7a8a99;
+          font-style:italic;margin-top:8px}
+        #portada-estatica .pe-cargando{max-width:1180px;margin:28px auto 0;padding:0 24px;
+          font-size:12px;color:#9aa7b2;display:flex;align-items:center;gap:10px}
+        #portada-estatica .pe-barra{flex:0 0 120px;height:3px;border-radius:3px;
+          background:var(--menta);overflow:hidden}
+        #portada-estatica .pe-barra i{display:block;height:100%;width:40%;border-radius:3px;
+          background:var(--verde);animation:pe-vaiven 1.1s ease-in-out infinite}
+        @keyframes pe-vaiven{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
+        @media (prefers-reduced-motion:reduce){#portada-estatica .pe-barra i{animation:none;width:100%}}
+        #portada-estatica .pe-texto{max-width:820px;margin:44px auto 0;padding:32px 24px 48px;
+          border-top:1px solid #eef2f5}
+        #portada-estatica .pe-texto h2{font-family:'Montserrat',-apple-system,sans-serif;
+          font-size:21px;color:var(--tinta);margin:32px 0 10px}
+        #portada-estatica .pe-texto h3{font-family:'Montserrat',-apple-system,sans-serif;
+          font-size:15px;color:var(--tinta);margin:20px 0 4px}
+        #portada-estatica .pe-texto ul{list-style:disc;padding-left:22px;margin:10px 0}
+        #portada-estatica .pe-texto ol{list-style:decimal;padding-left:22px;margin:10px 0}
+        #portada-estatica .pe-texto li{margin:6px 0}
+        #portada-estatica .pe-texto a{color:var(--verde-hondo);text-decoration:underline}
+        #portada-estatica .pe-nota{font-size:13px;color:#7a8a99;margin-top:30px}
+      </style>
+      <div id="portada-estatica">
+        <div class="pe-aviso">
+          <b>PROGRAMA FORMATIVO Y DE ACOMPAÑAMIENTO</b> · <b class="pe-menta">NO es servicio médico</b> ni sustituye a tu equipo sanitario.
+        </div>
+        <div class="pe-cabecera">
+          <svg viewBox="0 0 100 100" width="46" height="46" aria-hidden="true">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="#D4AF37" stroke-width="3.5" />
+            <path d="M50 95 V5" stroke="#D4AF37" stroke-width="3.5" stroke-linecap="round" />
+            <path d="M50 30 L80 15" stroke="#D4AF37" stroke-width="3.5" stroke-linecap="round" />
+            <path d="M50 30 L20 15" stroke="#D4AF37" stroke-width="3.5" stroke-linecap="round" />
+            <path d="M50 50 L80 35" stroke="#D4AF37" stroke-width="3.5" stroke-linecap="round" />
+            <path d="M50 50 L20 35" stroke="#D4AF37" stroke-width="3.5" stroke-linecap="round" />
+          </svg>
+          <div>
+            <div class="pe-marca">Cuid<span>·</span>Arte</div>
+            <div class="pe-lema">Método Dra. Odile Fernández</div>
+          </div>
+        </div>
+        <div class="pe-hero">
+          <p class="pe-sello">Bienestar basado en evidencia</p>
+          <h1>Recupera tu equilibrio con <em>ciencia y amor propio</em></h1>
+          <p class="pe-entrada">Cuid-Arte es un <strong>programa formativo y de acompañamiento integral para personas con cáncer</strong>, dirigido por la Dra. Odile Fernández. Unimos rigor científico y humanidad para que sientas seguridad, apoyo y protagonismo en tu proceso, en cada fase: recién diagnosticada, en tratamiento o en recuperación.
+            <span class="pe-fino">No es un servicio médico ni sustituye a tu equipo sanitario.</span>
+          </p>
+        </div>
+        <p class="pe-cargando"><span class="pe-barra"><i></i></span> Preparando la página…</p>
 
-        <h2 style="font-family:'Montserrat',sans-serif;color:#1A2530">Los 4 pilares de tu recuperación</h2>
-        <ul>
-          <li><strong>Nutrición antiinflamatoria:</strong> usar la alimentación para reducir la inflamación y crear un entorno biológico que favorezca tu recuperación.</li>
-          <li><strong>Ejercicio oncológico:</strong> fuerza suave para combatir la fatiga y proteger tu masa muscular.</li>
-          <li><strong>Bienestar emocional:</strong> herramientas para gestionar el estrés, el miedo a la recaída y regular tu sistema nervioso.</li>
-          <li><strong>Entorno saludable:</strong> reducir los tóxicos del hogar para cuidar tu salud hormonal.</li>
-        </ul>
+        <div class="pe-texto">
+          <h2>Los 4 pilares de tu recuperación</h2>
+          <ul>
+            <li><strong>Nutrición antiinflamatoria:</strong> usar la alimentación para reducir la inflamación y crear un entorno biológico que favorezca tu recuperación.</li>
+            <li><strong>Ejercicio oncológico:</strong> fuerza suave para combatir la fatiga y proteger tu masa muscular.</li>
+            <li><strong>Bienestar emocional:</strong> herramientas para gestionar el estrés, el miedo a la recaída y regular tu sistema nervioso.</li>
+            <li><strong>Entorno saludable:</strong> reducir los tóxicos del hogar para cuidar tu salud hormonal.</li>
+          </ul>
 
-        <h2 style="font-family:'Montserrat',sans-serif;color:#1A2530">Qué incluye tu plaza</h2>
-        <ul>
-          <li>Plan nutricional personalizado, adaptado a tu fase de tratamiento.</li>
-          <li>Programa de entrenamiento adaptado a tu nivel de energía y situación clínica.</li>
-          <li>Acompañamiento personal de tu coach.</li>
-          <li>Sesiones en directo y contenidos exclusivos con la Dra. Odile y expertos.</li>
-          <li>Plataforma personal con tu plan, clases y progreso.</li>
-          <li>Comunidad privada de pacientes y supervivientes, y eventos presenciales puntuales.</li>
-        </ul>
-        <p>El compromiso inicial es de 3 meses; Cuid-Arte es una comunidad de aprendizaje continuo, no un curso con inicio y fin.</p>
+          <h2>Qué incluye tu plaza</h2>
+          <ul>
+            <li>Plan nutricional personalizado, adaptado a tu fase de tratamiento.</li>
+            <li>Programa de entrenamiento adaptado a tu nivel de energía y situación clínica.</li>
+            <li>Acompañamiento personal de tu coach.</li>
+            <li>Sesiones en directo y contenidos exclusivos con la Dra. Odile y expertos.</li>
+            <li>Plataforma personal con tu plan, clases y progreso.</li>
+            <li>Comunidad privada de pacientes y supervivientes, y eventos presenciales puntuales.</li>
+          </ul>
+          <p>El compromiso inicial es de 3 meses; Cuid-Arte es una comunidad de aprendizaje continuo, no un curso con inicio y fin.</p>
 
-        <h2 style="font-family:'Montserrat',sans-serif;color:#1A2530">El equipo</h2>
-        <p>Equipo multidisciplinar (nutrición clínica oncológica, fisioterapia oncológica, psico-oncología y salud ambiental) en complemento —nunca sustitución— a tu equipo médico. Fundadora: <strong>Dra. Odile Fernández</strong>, médico de familia, superviviente de cáncer de ovario y autora de 8 libros, con más de 15.000 personas acompañadas.</p>
+          <h2>El equipo</h2>
+          <p>Equipo multidisciplinar (nutrición clínica oncológica, fisioterapia oncológica, psico-oncología y salud ambiental) en complemento —nunca sustitución— a tu equipo médico. Fundadora: <strong>Dra. Odile Fernández</strong>, médico de familia, superviviente de cáncer de ovario y autora de 8 libros, con más de 15.000 personas acompañadas.</p>
 
-        <h2 style="font-family:'Montserrat',sans-serif;color:#1A2530">Proceso de admisión</h2>
-        <ol>
-          <li><strong>Solicitud:</strong> rellenas un breve formulario, sin compromiso.</li>
-          <li><strong>Entrevista de valoración:</strong> escuchamos tu situación, miedos y necesidades.</li>
-          <li><strong>Propuesta a medida:</strong> si podemos ayudarte, diseñamos un plan adaptado a ti.</li>
-        </ol>
-        <p><a href="/encuentro.html">Conoce nuestros encuentros presenciales</a> · <a href="/metodo.html">El método Cuid-Arte</a></p>
+          <h2>Proceso de admisión</h2>
+          <ol>
+            <li><strong>Solicitud:</strong> rellenas un breve formulario, sin compromiso.</li>
+            <li><strong>Entrevista de valoración:</strong> escuchamos tu situación, miedos y necesidades.</li>
+            <li><strong>Propuesta a medida:</strong> si podemos ayudarte, diseñamos un plan adaptado a ti.</li>
+          </ol>
+          <p><a href="/encuentro.html">Conoce nuestros encuentros presenciales</a> · <a href="/metodo.html">El método Cuid-Arte</a></p>
 
-        <h2 style="font-family:'Montserrat',sans-serif;color:#1A2530">Dudas frecuentes</h2>
-        <h3 style="font-family:'Montserrat',sans-serif">¿Cuánto dura el programa?</h3>
-        <p>El compromiso inicial es de 3 meses, pero es una comunidad de aprendizaje continuo donde lo ideal es quedarte el tiempo que tu proceso lo necesite.</p>
-        <h3 style="font-family:'Montserrat',sans-serif">¿Es online o presencial?</h3>
-        <p>El programa es online y se complementa con eventos presenciales puntuales (encuentros, retiros, jornadas).</p>
-        <h3 style="font-family:'Montserrat',sans-serif">¿Puedo hacerlo si estoy en tratamiento oncológico?</h3>
-        <p>Sí. Está diseñado para adaptarse a cada fase: cirugía, quimioterapia, radioterapia, inmunoterapia y hormonoterapia.</p>
-        <h3 style="font-family:'Montserrat',sans-serif">¿Este programa sustituye a mi tratamiento médico?</h3>
-        <p>No. Cuid-Arte no sustituye cirugías, quimioterapia, radioterapia ni ningún tratamiento oncológico. Es un apoyo complementario para mejorar tu calidad de vida.</p>
-        <h3 style="font-family:'Montserrat',sans-serif">¿Cuánto tiempo necesito cada semana?</h3>
-        <p>Entre 2 y 4 horas semanales. El programa es flexible y se adapta a ti.</p>
+          <h2>Dudas frecuentes</h2>
+          <h3>¿Cuánto dura el programa?</h3>
+          <p>El compromiso inicial es de 3 meses, pero es una comunidad de aprendizaje continuo donde lo ideal es quedarte el tiempo que tu proceso lo necesite.</p>
+          <h3>¿Es online o presencial?</h3>
+          <p>El programa es online y se complementa con eventos presenciales puntuales (encuentros, retiros, jornadas).</p>
+          <h3>¿Puedo hacerlo si estoy en tratamiento oncológico?</h3>
+          <p>Sí. Está diseñado para adaptarse a cada fase: cirugía, quimioterapia, radioterapia, inmunoterapia y hormonoterapia.</p>
+          <h3>¿Este programa sustituye a mi tratamiento médico?</h3>
+          <p>No. Cuid-Arte no sustituye cirugías, quimioterapia, radioterapia ni ningún tratamiento oncológico. Es un apoyo complementario para mejorar tu calidad de vida.</p>
+          <h3>¿Cuánto tiempo necesito cada semana?</h3>
+          <p>Entre 2 y 4 horas semanales. El programa es flexible y se adapta a ti.</p>
 
-        <p style="font-size:13px;color:#7a8a99;margin-top:30px"><strong>Importante:</strong> Cuid-Arte es un programa formativo y de acompañamiento. NO es centro médico, NO presta consulta médica, NO diagnostica ni prescribe. Consulta siempre con tu oncólogo/a antes de cambios significativos en tu estilo de vida. Servicio prestado por NEIKO HEALTH, S.L.</p>
+          <p class="pe-nota"><strong>Importante:</strong> Cuid-Arte es un programa formativo y de acompañamiento. NO es centro médico, NO presta consulta médica, NO diagnostica ni prescribe. Consulta siempre con tu oncólogo/a antes de cambios significativos en tu estilo de vida. Servicio prestado por NEIKO HEALTH, S.L.</p>
+        </div>
       </div>
     </div>
     <script type="application/ld+json">
