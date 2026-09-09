@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="/analytics.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Membresía · Cuid-Arte</title>
+    <meta name="robots" content="noindex,nofollow">
+    <meta name="description" content="Alta en la membresía de Cuid-Arte.">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'sage':  { 50:'#f6f7f4',100:'#e8ebe3',200:'#d4dbc9',300:'#b4c0a3',400:'#94a67d',500:'#6BA06B',600:'#558055',700:'#445f43',800:'#394d38',900:'#1a2e1a' },
+                        'sand':  { 50:'#faf8f5',100:'#f5f0e8',200:'#ebe0d0',300:'#dcc9ad',400:'#D4AF37',500:'#B08D26',600:'#8c6f1e',700:'#6b5518' },
+                        'earth': { 50:'#FAF9F6',100:'#f0ede6',200:'#e0dbd0',800:'#2C3E50',900:'#1A2530' },
+                    },
+                    fontFamily: {
+                        display:['Playfair Display','Georgia','serif'],
+                        heading:['Montserrat','sans-serif'],
+                        sans:['Open Sans','sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@500;600;700;800&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family:'Open Sans',sans-serif; background:#FAF9F6; color:#1a2e1a; }
+        h1,h2,h3,.display { font-family:'Playfair Display',serif; }
+        .heading { font-family:'Montserrat',sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<header class="border-b border-sage-100 bg-white">
+    <div class="max-w-3xl mx-auto px-6 py-5 flex items-center justify-between">
+        <a href="/" class="display text-xl font-bold text-sage-800">Cuid-Arte</a>
+        <div class="flex items-center gap-2 text-xs heading font-semibold text-sage-600 uppercase tracking-wider">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Pago seguro
+        </div>
+    </div>
+</header>
+
+<main class="flex-1 max-w-3xl w-full mx-auto px-6 py-10 md:py-16">
+
+    <!-- ESTADO: cargando -->
+    <div id="state-loading" class="text-center py-20">
+        <div class="inline-block w-10 h-10 border-4 border-sage-200 border-t-sage-600 rounded-full animate-spin"></div>
+        <p class="mt-4 text-sm text-sage-600 heading font-medium">Cargando…</p>
+    </div>
+
+    <!-- ESTADO: error -->
+    <div id="state-error" class="hidden text-center py-16">
+        <div class="w-14 h-14 mx-auto rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+        </div>
+        <h1 class="display text-2xl font-bold text-sage-900 mt-5">No podemos abrir el alta ahora mismo</h1>
+        <p id="error-msg" class="mt-3 text-sm text-sage-600 max-w-md mx-auto leading-relaxed">Vuelve a intentarlo en unos minutos.</p>
+        <p class="mt-6 text-xs text-sage-500">Si sigue sin funcionar, escríbenos por <a href="https://wa.me/34692183833" class="underline font-semibold">WhatsApp</a> y lo resolvemos.</p>
+    </div>
+
+    <!-- ESTADO: listo -->
+    <div id="state-ready" class="hidden">
+
+        <!-- Aviso de pago rechazado -->
+        <div id="state-ko" class="hidden mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-900 leading-relaxed">
+            <strong>El pago no se completó.</strong> No se te ha cobrado nada. Puedes intentarlo otra vez desde aquí.
+        </div>
+
+        <div class="text-center mb-8">
+            <h1 class="display text-3xl md:text-4xl font-bold text-sage-900">La membresía de Cuid-Arte</h1>
+            <p class="mt-3 text-sm text-sage-600 max-w-lg mx-auto leading-relaxed">
+                Acompañamiento continuo, con la Dra. Odile Fernández detrás. Se renueva sola y la cancelas cuando quieras.
+            </p>
+        </div>
+
+        <!-- Plan -->
+        <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-8 shadow-sm mb-6">
+            <h3 class="heading text-sm font-bold text-sage-800 uppercase tracking-wider mb-4">Tu plan</h3>
+            <div id="planes" class="grid grid-cols-1 gap-3"></div>
+
+            <div class="h-px bg-gradient-to-r from-transparent via-sand-300 to-transparent my-5"></div>
+
+            <div class="text-xs text-sage-600 leading-relaxed space-y-2">
+                <p>
+                    Pago procesado mediante <strong>pasarela segura TPV Virtual Redsys</strong> con cifrado y autenticación reforzada <strong>3D Secure</strong>. Tu información bancaria nunca llega a Cuid-Arte: la introduces directamente en la pasarela de tu banco.
+                </p>
+                <p>
+                    Tras el primer pago, tu banco guarda una <strong>referencia</strong> para poder cobrar las renovaciones. Nosotros nunca vemos ni guardamos el número de tu tarjeta.
+                </p>
+            </div>
+        </div>
+
+        <!-- Datos para factura -->
+        <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-8 shadow-sm mb-6">
+            <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
+                <h3 class="heading text-sm font-bold text-sage-800 uppercase tracking-wider">Datos para tu factura</h3>
+                <div class="flex bg-sage-50 border border-sage-200 rounded-xl p-1 text-xs heading font-semibold">
+                    <button id="btn-particular" type="button" class="px-3 py-1.5 rounded-lg bg-sage-700 text-white transition-all">Particular</button>
+                    <button id="btn-empresa" type="button" class="px-3 py-1.5 rounded-lg text-sage-600 hover:text-sage-800 transition-all">Empresa</button>
+                </div>
+            </div>
+
+            <div id="b2b-fields" class="hidden mb-4 p-4 bg-sage-50/60 border border-sage-200/60 rounded-2xl space-y-4">
+                <div>
+                    <label class="block text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Razón social <span class="text-rose-500">*</span></label>
+                    <input id="company_name" type="text" autocomplete="organization" class="w-full px-4 py-3 rounded-xl border border-sage-200 focus:border-sage-500 focus:ring-2 focus:ring-sage-500/20 outline-none text-sm bg-white" placeholder="Nombre de la empresa, S.L.">
+                </div>
+                <div>
+                    <label class="block text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-1.5">CIF <span class="text-rose-500">*</span></label>
+                    <input id="company_tax_id" type="text" autocomplete="off" class="w-full px-4 py-3 rounded-xl border border-sage-200 focus:border-sage-500 focus:ring-2 focus:ring-sage-500/20 outline-none text-sm bg-white uppercase" placeholder="B12345678" maxlength="9">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Nombre <span class="text-rose-500">*</span></label>
+                    <input id="customer_first_name" type="text" autocomplete="given-name" class="w-full px-4 py-3 rounded-xl border border-sage-200 focus:border-sage-500 focus:ring-2 focus:ring-sage-500/20 outline-none text-sm bg-white" placeholder="María">
+                </div>
+                <div>
+                    <label class="block text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Apellidos <span class="text-rose-500">*</span></label>
+                    <input id="customer_last_name" type="text" autocomplete="family-name" class="w-full px-4 py-3 rounded-xl border border-sage-200 focus:border-sage-500 focus:ring-2 focus:ring-sage-500/20 outline-none text-sm bg-white" placeholder="López Pérez">
+                </div>
+                <div id="dni-wrapper">
+                    <label class="block text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-1.5">DNI / NIE <span class="text-rose-500">*</span></label>
+                    <input id="customer_dni" type="text" autocomplete="off" class="w-full px-4 py-3 rounded-xl border border-sage-200 focus:border-sage-500 focus:ring-2 focus:ring-sage-500/20 outline-none text-sm bg-white uppercase" placeholder="12345678A" maxlength="9">
+                </div>
+                <div>
+                    <label class="block text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Email <span class="text-rose-500">*</span></label>
+                    <input id="customer_email" type="email" autocomplete="email" class="w-full px-4 py-3 rounded-xl border border-sage-200 focus:border-sage-500 focus:ring-2 focus:ring-sage-500/20 outline-none text-sm bg-white" placeholder="tucorreo@ejemplo.com">
+                </div>
+                <div>
+                    <label class="block text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Teléfono <span class="text-sage-400 normal-case font-normal">(opcional)</span></label>
+                    <input id="customer_phone" type="tel" autocomplete="tel" class="w-full px-4 py-3 rounded-xl border border-sage-200 focus:border-sage-500 focus:ring-2 focus:ring-sage-500/20 outline-none text-sm bg-white" placeholder="+34 600 00 00 00">
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Dirección <span class="text-rose-500">*</span></label>
+                    <input id="customer_address" type="text" autocomplete="street-address" class="w-full px-4 py-3 rounded-xl border border-sage-200 focus:border-sage-500 focus:ring-2 focus:ring-sage-500/20 outline-none text-sm bg-white" placeholder="Calle, número, piso, puerta">
+                </div>
+                <div>
+                    <label class="block text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Código postal <span class="text-rose-500">*</span></label>
+                    <input id="customer_postal_code" type="text" inputmode="numeric" autocomplete="postal-code" class="w-full px-4 py-3 rounded-xl border border-sage-200 focus:border-sage-500 focus:ring-2 focus:ring-sage-500/20 outline-none text-sm bg-white" placeholder="28008" maxlength="5">
+                </div>
+                <div>
+                    <label class="block text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Ciudad <span class="text-rose-500">*</span></label>
+                    <input id="customer_city" type="text" autocomplete="address-level2" class="w-full px-4 py-3 rounded-xl border border-sage-200 focus:border-sage-500 focus:ring-2 focus:ring-sage-500/20 outline-none text-sm bg-white" placeholder="Madrid">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[11px] heading font-semibold text-sage-600 uppercase tracking-wider mb-1.5">Provincia <span class="text-rose-500">*</span></label>
+                    <input id="customer_province" type="text" autocomplete="address-level1" class="w-full px-4 py-3 rounded-xl border border-sage-200 focus:border-sage-500 focus:ring-2 focus:ring-sage-500/20 outline-none text-sm bg-white" placeholder="Madrid">
+                </div>
+            </div>
+            <p id="form-error" class="hidden mt-3 text-xs text-rose-600"></p>
+            <p class="mt-4 text-[11px] text-sage-500 leading-relaxed">
+                <strong>NEIKO HEALTH, S.L.</strong> emitirá una factura a tu nombre cada vez que se renueve. Asegúrate de que los datos sean correctos.
+            </p>
+        </div>
+
+        <!-- Consentimiento contractual (clickwrap obligatorio) -->
+        <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-8 shadow-sm mb-6">
+            <h3 class="heading text-sm font-bold text-sage-800 uppercase tracking-wider mb-4">Antes de pagar</h3>
+            <div class="space-y-3">
+                <label class="flex items-start gap-3 text-sm text-sage-800 cursor-pointer group">
+                    <input id="consent-terms" type="checkbox" class="mt-0.5 w-5 h-5 text-sage-700 border-sage-300 rounded focus:ring-sage-500 cursor-pointer flex-shrink-0">
+                    <span class="leading-relaxed">
+                        He leído y acepto las <a href="condiciones.html" target="_blank" rel="noopener" class="underline font-semibold text-sage-700 hover:text-sage-900">Condiciones de Contratación</a>, la <a href="condiciones.html#desistimiento" target="_blank" rel="noopener" class="underline font-semibold text-sage-700 hover:text-sage-900">Política de Devoluciones (14 días)</a> y el <a href="legal.html" target="_blank" rel="noopener" class="underline font-semibold text-sage-700 hover:text-sage-900">Aviso Legal</a>. <span class="text-rose-500">*</span>
+                    </span>
+                </label>
+                <label class="flex items-start gap-3 text-sm text-sage-800 cursor-pointer group">
+                    <input id="consent-privacy" type="checkbox" class="mt-0.5 w-5 h-5 text-sage-700 border-sage-300 rounded focus:ring-sage-500 cursor-pointer flex-shrink-0">
+                    <span class="leading-relaxed">
+                        He leído la <a href="privacidad.html" target="_blank" rel="noopener" class="underline font-semibold text-sage-700 hover:text-sage-900">Política de Privacidad</a> y consiento el tratamiento de mis datos personales por NEIKO HEALTH, S.L. para gestionar la contratación, emitir factura y prestar el servicio. <span class="text-rose-500">*</span>
+                    </span>
+                </label>
+                <label class="flex items-start gap-3 text-sm text-sage-800 cursor-pointer group">
+                    <input id="consent-anticipated" type="checkbox" class="mt-0.5 w-5 h-5 text-sage-700 border-sage-300 rounded focus:ring-sage-500 cursor-pointer flex-shrink-0">
+                    <span class="leading-relaxed">
+                        Solicito expresamente comenzar el servicio antes de que finalice el plazo de desistimiento de 14 días y entiendo que, conforme al art. 103.a) del RD Leg. 1/2007, <strong>pierdo el derecho de desistimiento</strong> respecto a la parte del servicio ya prestada. Las prestaciones no realizadas serán reembolsables proporcionalmente. <span class="text-rose-500">*</span>
+                    </span>
+                </label>
+                <!-- Cuarta casilla, propia de la suscripcion: son cargos que no vera venir uno a uno. -->
+                <label class="flex items-start gap-3 text-sm text-sage-800 cursor-pointer group">
+                    <input id="consent-recurring" type="checkbox" class="mt-0.5 w-5 h-5 text-sage-700 border-sage-300 rounded focus:ring-sage-500 cursor-pointer flex-shrink-0">
+                    <span class="leading-relaxed">
+                        Autorizo a NEIKO HEALTH, S.L. a cargar <strong id="consent-importe">—</strong> en esta misma tarjeta <strong id="consent-cadencia">—</strong>, de forma automática y sin necesidad de confirmarlo cada vez, hasta que yo cancele. Sé que <strong>puedo cancelar cuando quiera</strong> desde mi perfil o escribiendo a Cuid-Arte, y que al cancelar mantengo el acceso hasta el final del período ya pagado. <span class="text-rose-500">*</span>
+                    </span>
+                </label>
+            </div>
+            <p id="consent-error" class="hidden mt-4 text-xs text-rose-600 font-semibold">Debes marcar las cuatro casillas para poder continuar.</p>
+        </div>
+
+        <!-- Pago -->
+        <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-8 shadow-sm mb-6">
+            <h3 class="heading text-sm font-bold text-sage-800 uppercase tracking-wider mb-4">Pagar y entrar</h3>
+            <div id="payment-methods" class="grid grid-cols-1 gap-3"></div>
+
+            <p class="mt-4 text-[11px] text-sage-500 leading-relaxed">
+                La membresía solo se puede pagar con <strong>tarjeta</strong>. Bizum no permite guardar una referencia para las renovaciones, así que no serviría para una suscripción.
+            </p>
+
+            <div class="mt-6 pt-5 border-t border-sage-100">
+                <p class="text-[10px] heading font-semibold text-sage-500 uppercase tracking-[1.5px] mb-3 text-center">Métodos y sellos de seguridad</p>
+                <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
+                    <svg aria-label="Visa" role="img" width="42" height="14" viewBox="0 0 48 16" xmlns="http://www.w3.org/2000/svg"><title>Visa</title><path fill="#1A1F71" d="M19.6 1.2L13.1 14.8h-4.2L5.7 4c-.2-.8-.4-1.1-1-1.4-1-.5-2.6-1-4-1.3L.8 1.2h6.8c.9 0 1.6.6 1.9 1.5l1.7 9.2 4.2-10.7h4.2zm16.7 9.2c0-4.1-5.7-4.3-5.6-6.2 0-.5.6-1.1 1.8-1.3 1.5-.2 3.2.1 4.5.7l.7-3.3C36.4.1 34.8 0 32.9 0c-3.9 0-6.7 2.1-6.7 5.1 0 2.2 2 3.4 3.5 4.2 1.6.7 2.1 1.2 2.1 1.9 0 1-1.2 1.5-2.4 1.5-2 0-3.2-.5-4.1-1L24.6 15c.9.4 2.6.8 4.4.8 4.1 0 6.8-2 6.8-5.2.1-1.7-.9-2.9-.5-3.2zM47.3 14.8L44.1 1.2h-3.4c-.8 0-1.4.4-1.7 1.2l-6.1 12.4h4.2l.8-2.3h5.1l.5 2.3h3.8zm-5.9-5.5l2.1-5.7 1.2 5.7h-3.3zM25.3 1.2L22 14.8h-4l3.3-13.6h4z"/></svg>
+                    <svg aria-label="Mastercard" role="img" width="32" height="20" viewBox="0 0 36 22" xmlns="http://www.w3.org/2000/svg"><title>Mastercard</title><circle cx="13" cy="11" r="9" fill="#EB001B"/><circle cx="23" cy="11" r="9" fill="#F79E1B" fill-opacity="0.9"/><path fill="#FF5F00" d="M18 4.5a8.97 8.97 0 0 1 0 13c-2.3-1.8-3.7-4.6-3.7-6.5 0-2 1.4-4.7 3.7-6.5z"/></svg>
+                    <svg aria-label="American Express" role="img" width="32" height="20" viewBox="0 0 32 20" xmlns="http://www.w3.org/2000/svg"><title>American Express</title><rect width="32" height="20" rx="2" fill="#2E77BC"/><text x="16" y="13.5" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="6.5" fill="#fff" letter-spacing="0.5">AMEX</text></svg>
+                    <span class="w-px h-5 bg-sage-200" aria-hidden="true"></span>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sage-50 border border-sage-200">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#558055" stroke-width="2.5"><path d="M12 2L4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+                        <span class="text-[10px] heading font-bold text-sage-700 uppercase tracking-wider">3D&nbsp;Secure</span>
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sage-50 border border-sage-200">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#558055" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <span class="text-[10px] heading font-bold text-sage-700 uppercase tracking-wider">TPV Seguro</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-center text-[11px] text-sage-500 leading-relaxed mt-8">
+            Al pagar aceptas las <a href="condiciones.html" class="underline">condiciones de contratación</a>, la <a href="condiciones.html#desistimiento" class="underline">política de devoluciones (14 días)</a> y la <a href="privacidad.html" class="underline">política de privacidad</a> de Cuid-Arte.<br>
+            ¿Tienes dudas? Escríbenos por <a href="https://wa.me/34692183833" class="underline font-semibold">WhatsApp</a>.
+        </p>
+
+    </div>
+
+</main>
+
+<footer class="border-t border-sage-100 py-6 mt-10 text-center text-xs text-sage-500">
+    <p>&copy; 2026 NEIKO HEALTH, S.L. · Cuid-Arte · NIF B22928311 · RM Madrid, hoja M-865423</p>
+    <p class="mt-2"><a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener" class="hover:text-sage-700 underline">Resolución de litigios en línea (UE)</a></p>
+</footer>
+
+<script>
+(function () {
+    // ────── Config (placeholders reemplazados por entrypoint.sh) ──────
+    const SB_URL = "__SUPABASE_URL__";
+    const SB_KEY = "__SUPABASE_ANON_KEY__";
+    const sb = SB_URL.startsWith('http') ? window.supabase.createClient(SB_URL, SB_KEY) : null;
+
+    // ────── Helpers ──────
+    const $ = (id) => document.getElementById(id);
+    const fmtEUR = (cents) => new Intl.NumberFormat('es-ES', { style:'currency', currency:'EUR' }).format(cents / 100);
+    const params = new URLSearchParams(location.search);
+    const pagoKO = params.get('pago') === 'ko';
+
+    let planes = [];
+    let planElegido = null;
+
+    function showState(id) {
+        ['state-loading','state-error','state-ready'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+    }
+    function showError(msg) {
+        if (msg) $('error-msg').textContent = msg;
+        showState('state-error');
+    }
+
+    // ────── Catálogo: el precio lo manda la BASE, nunca esta página ──────
+    async function cargarPlanes() {
+        if (!sb) return showError('Servicio no disponible. Inténtalo más tarde.');
+
+        const { data, error } = await sb.schema('membresia').rpc('planes_a_la_venta');
+        if (error) {
+            console.error(error);
+            return showError('No hemos podido cargar los planes. Inténtalo en unos minutos.');
+        }
+        planes = Array.isArray(data) ? data : [];
+        if (!planes.length) return showError('Ahora mismo no hay ningún plan abierto. Escríbenos y te avisamos en cuanto abra.');
+
+        planElegido = planes[0];
+        pintarPlanes();
+        pintarBotonPago();
+        showState('state-ready');
+        if (pagoKO) $('state-ko').classList.remove('hidden');
+    }
+
+    function pintarPlanes() {
+        const cont = $('planes');
+        cont.innerHTML = '';
+        planes.forEach((p) => {
+            const elegido = planElegido && p.id === planElegido.id;
+            const solo = planes.length === 1;
+            const card = document.createElement(solo ? 'div' : 'button');
+            if (!solo) { card.type = 'button'; card.dataset.plan = p.id; }
+            card.className = 'w-full text-left flex items-center justify-between gap-4 p-5 rounded-2xl border transition-all '
+                + (elegido ? 'border-sage-500 bg-sage-50/70 ring-2 ring-sage-500/20' : 'border-sage-200 bg-white hover:border-sage-300');
+            card.innerHTML =
+                '<div>' +
+                    '<div class="heading font-bold text-sage-900">' + p.nombre + '</div>' +
+                    '<div class="text-xs text-sage-600 mt-0.5">Se renueva ' + p.cada_texto + ', hasta que la canceles</div>' +
+                '</div>' +
+                '<div class="text-right flex-shrink-0">' +
+                    '<div class="display text-2xl font-bold text-sage-900 tabular-nums">' + fmtEUR(p.precio_cent) + '</div>' +
+                    '<div class="text-[11px] text-sage-500">' + p.cada_texto + '</div>' +
+                '</div>';
+            if (!solo) card.addEventListener('click', () => { planElegido = p; pintarPlanes(); pintarBotonPago(); });
+            cont.appendChild(card);
+        });
+        // La casilla del cobro recurrente dice el importe y la cadencia REALES.
+        $('consent-importe').textContent = fmtEUR(planElegido.precio_cent);
+        $('consent-cadencia').textContent = planElegido.cada_texto;
+    }
+
+    function pintarBotonPago() {
+        const cont = $('payment-methods');
+        cont.innerHTML = '';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.dataset.method = 'card';
+        btn.className = 'w-full flex items-center gap-4 p-5 rounded-2xl bg-sage-700 hover:bg-sage-800 text-white transition-all disabled:opacity-60';
+        btn.innerHTML =
+            '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>' +
+            '<div class="flex-1 text-left heading font-bold">Pagar ' + fmtEUR(planElegido.precio_cent) + ' con tarjeta</div>';
+        btn.addEventListener('click', () => pagar(btn));
+        cont.appendChild(btn);
+    }
+
+    // ────── Particular / Empresa ──────
+    let isCompany = false;
+    $('btn-particular').addEventListener('click', () => setCompany(false));
+    $('btn-empresa').addEventListener('click', () => setCompany(true));
+    function setCompany(v) {
+        isCompany = v;
+        $('b2b-fields').classList.toggle('hidden', !v);
+        $('dni-wrapper').classList.toggle('hidden', v);
+        $('btn-empresa').className = 'px-3 py-1.5 rounded-lg transition-all ' + (v ? 'bg-sage-700 text-white' : 'text-sage-600 hover:text-sage-800');
+        $('btn-particular').className = 'px-3 py-1.5 rounded-lg transition-all ' + (v ? 'text-sage-600 hover:text-sage-800' : 'bg-sage-700 text-white');
+    }
+
+    // ────── Validación de identificadores fiscales ──────
+    const LETRAS_DNI = 'TRWAGMYFPDXBNJZSQVHLCKE';
+    function isValidTaxIdParticular(v) {
+        const s = (v || '').toUpperCase().trim();
+        let m = s.match(/^(\d{8})([A-Z])$/);
+        if (m) return LETRAS_DNI[parseInt(m[1], 10) % 23] === m[2];
+        m = s.match(/^([XYZ])(\d{7})([A-Z])$/);
+        if (m) {
+            const n = parseInt('XYZ'.indexOf(m[1]) + m[2], 10);
+            return LETRAS_DNI[n % 23] === m[3];
+        }
+        return false;
+    }
+    function isValidTaxIdEmpresa(v) {
+        return /^[ABCDEFGHJNPQRSUVW]\d{7}[0-9A-J]$/.test((v || '').toUpperCase().trim());
+    }
+    const reCP = /^\d{5}$/;
+
+    // ────── Pagar ──────
+    async function pagar(clickedBtn) {
+        const firstName = $('customer_first_name').value.trim();
+        const lastName  = $('customer_last_name').value.trim();
+        const dni       = $('customer_dni').value.trim().toUpperCase();
+        const email     = $('customer_email').value.trim();
+        const phone     = $('customer_phone').value.trim();
+        const address   = $('customer_address').value.trim();
+        const cp        = $('customer_postal_code').value.trim();
+        const city      = $('customer_city').value.trim();
+        const province  = $('customer_province').value.trim();
+        const companyName  = $('company_name').value.trim();
+        const companyTaxId = $('company_tax_id').value.trim().toUpperCase();
+        const name = `${firstName} ${lastName}`.trim();
+
+        const consentTerms = $('consent-terms').checked;
+        const consentPrivacy = $('consent-privacy').checked;
+        const consentAnticipated = $('consent-anticipated').checked;
+        const consentRecurring = $('consent-recurring').checked;
+        const err = $('form-error');
+        const consentErr = $('consent-error');
+        err.classList.add('hidden');
+        consentErr.classList.add('hidden');
+
+        function failForm(msg) {
+            err.textContent = msg; err.classList.remove('hidden');
+            window.scrollTo({ top: err.offsetTop - 80, behavior: 'smooth' });
+        }
+
+        // Consentimiento contractual (clickwrap, art. 27 LSSICE) + el del cobro recurrente
+        if (!consentTerms || !consentPrivacy || !consentAnticipated || !consentRecurring) {
+            consentErr.classList.remove('hidden');
+            window.scrollTo({ top: consentErr.offsetTop - 100, behavior: 'smooth' });
+            return;
+        }
+
+        if (!firstName) return failForm('Indica tu nombre.');
+        if (!lastName) return failForm('Indica tus apellidos.');
+        if (!email || !email.includes('@')) return failForm('Indica un email válido.');
+        if (!address) return failForm('Indica tu dirección.');
+        if (!reCP.test(cp)) return failForm('El código postal debe tener 5 dígitos.');
+        if (!city) return failForm('Indica tu ciudad.');
+        if (!province) return failForm('Indica tu provincia.');
+        if (isCompany) {
+            if (!companyName || companyName.length < 2) return failForm('Indica la razón social de la empresa.');
+            if (!isValidTaxIdEmpresa(companyTaxId)) return failForm('CIF inválido. Formato: B12345678.');
+        } else {
+            if (!isValidTaxIdParticular(dni)) return failForm('DNI/NIE inválido. Formato: 12345678A o X1234567A.');
+        }
+
+        // Snapshot del consentimiento para trazabilidad / auditoría
+        const consentRecord = {
+            accepted_terms: consentTerms,
+            accepted_privacy: consentPrivacy,
+            accepted_anticipated_service: consentAnticipated,
+            accepted_recurring: consentRecurring,
+            accepted_at: new Date().toISOString(),
+            user_agent: navigator.userAgent,
+            terms_version: '2026-05',
+            privacy_version: '2026-05',
+        };
+
+        clickedBtn.disabled = true;
+        clickedBtn.innerHTML = '<div class="w-7 h-7 border-4 border-white/40 border-t-white rounded-full animate-spin"></div><div class="flex-1 text-left heading font-bold">Redirigiendo a la pasarela de pago…</div>';
+
+        try {
+            const resp = await fetch(`${SB_URL}/functions/v1/redsys-create-payment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY },
+                body: JSON.stringify({
+                    // Sin amount_cents a proposito: el importe lo pone el servidor
+                    // leyendo el catalogo. Si lo mandara la pagina, cualquiera
+                    // pagaria 1 EUR por lo que vale 59.
+                    payment_method: 'card',
+                    customer_name: name,
+                    customer_email: email,
+                    customer_phone: phone || null,
+                    metadata: { tipo: 'membresia', plan: planElegido.id },
+                    billing: {
+                        first_name: firstName,
+                        last_name: lastName,
+                        is_company: isCompany,
+                        tax_id: isCompany ? companyTaxId : dni,
+                        company_name: isCompany ? companyName : null,
+                        address, postal_code: cp, city, province, country: 'España',
+                    },
+                    consent: consentRecord,
+                }),
+            });
+            const data = await resp.json();
+            if (!resp.ok) {
+                failForm(data.error || 'Error al iniciar el pago. Inténtalo de nuevo.');
+                pintarBotonPago();
+                return;
+            }
+
+            // Auto-submit del formulario hacia Redsys
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = data.url;
+            form.style.display = 'none';
+            const fields = {
+                Ds_SignatureVersion: data.Ds_SignatureVersion,
+                Ds_MerchantParameters: data.Ds_MerchantParameters,
+                Ds_Signature: data.Ds_Signature,
+            };
+            for (const [k, v] of Object.entries(fields)) {
+                const input = document.createElement('input');
+                input.type = 'hidden'; input.name = k; input.value = v;
+                form.appendChild(input);
+            }
+            document.body.appendChild(form);
+            form.submit();
+        } catch (e) {
+            console.error(e);
+            failForm('No se pudo conectar. Comprueba tu conexión.');
+            pintarBotonPago();
+        }
+    }
+
+    cargarPlanes();
+})();
+</script>
+
+</body>
+</html>

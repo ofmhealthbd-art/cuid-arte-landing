@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="/analytics.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ya estás dentro · Cuid-Arte</title>
+    <meta name="robots" content="noindex,nofollow">
+    <meta name="description" content="Confirmación del alta en la membresía de Cuid-Arte.">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'sage':  { 50:'#f6f7f4',100:'#e8ebe3',200:'#d4dbc9',300:'#b4c0a3',400:'#94a67d',500:'#6BA06B',600:'#558055',700:'#445f43',800:'#394d38',900:'#1a2e1a' },
+                        'sand':  { 50:'#faf8f5',100:'#f5f0e8',200:'#ebe0d0',300:'#dcc9ad',400:'#D4AF37',500:'#B08D26',600:'#8c6f1e',700:'#6b5518' },
+                    },
+                    fontFamily: {
+                        display:['Playfair Display','Georgia','serif'],
+                        heading:['Montserrat','sans-serif'],
+                        sans:['Open Sans','sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@500;600;700;800&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family:'Open Sans',sans-serif; background:#FAF9F6; color:#1a2e1a; }
+        h1,h2,h3,.display { font-family:'Playfair Display',serif; }
+        .heading { font-family:'Montserrat',sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<header class="border-b border-sage-100 bg-white">
+    <div class="max-w-3xl mx-auto px-6 py-5">
+        <a href="/" class="display text-xl font-bold text-sage-800">Cuid-Arte</a>
+    </div>
+</header>
+
+<main class="flex-1 max-w-2xl w-full mx-auto px-6 py-14 md:py-20">
+
+    <div class="text-center">
+        <div class="w-16 h-16 mx-auto rounded-full bg-sage-50 border border-sage-200 flex items-center justify-center">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#558055" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <h1 class="display text-3xl md:text-4xl font-bold text-sage-900 mt-6">Pago confirmado</h1>
+        <p class="mt-4 text-sage-700 leading-relaxed">
+            Ya eres miembra de Cuid-Arte. Estamos abriendo tu acceso: <strong>te escribimos en unos minutos</strong> con el enlace para entrar.
+        </p>
+        <p id="orden" class="hidden mt-4 text-xs text-sage-500">Referencia de tu pago: <span id="orden-num" class="font-mono"></span></p>
+    </div>
+
+    <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-8 shadow-sm mt-10">
+        <h2 class="heading text-sm font-bold text-sage-800 uppercase tracking-wider mb-4">Lo que pasa ahora</h2>
+        <ol class="space-y-4 text-sm text-sage-700 leading-relaxed">
+            <li class="flex gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-sage-100 text-sage-700 heading font-bold text-xs flex items-center justify-center">1</span>
+                <span>Te llega tu <strong>factura</strong> al correo que nos has dado.</span>
+            </li>
+            <li class="flex gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-sage-100 text-sage-700 heading font-bold text-xs flex items-center justify-center">2</span>
+                <span>Te mandamos el <strong>enlace de acceso</strong> a tu espacio. Es de un solo uso: al entrar, ya te queda la sesión abierta.</span>
+            </li>
+            <li class="flex gap-3">
+                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-sage-100 text-sage-700 heading font-bold text-xs flex items-center justify-center">3</span>
+                <span>A partir de ahí, la membresía <strong>se renueva sola</strong> con la misma tarjeta. Te avisamos antes de cada renovación.</span>
+            </li>
+        </ol>
+    </div>
+
+    <div class="bg-white border border-sage-200 rounded-3xl p-6 md:p-8 shadow-sm mt-6">
+        <h2 class="heading text-sm font-bold text-sage-800 uppercase tracking-wider mb-3">Si quieres cancelar</h2>
+        <p class="text-sm text-sage-700 leading-relaxed">
+            Puedes hacerlo cuando quieras, desde tu perfil o escribiéndonos. No hay permanencia ni penalización. Al cancelar
+            <strong>mantienes el acceso hasta el final del período que ya has pagado</strong>.
+        </p>
+    </div>
+
+    <p class="text-center text-xs text-sage-500 leading-relaxed mt-10">
+        ¿No te llega nada en 15 minutos? Mira también la carpeta de spam y, si sigue sin aparecer, escríbenos por
+        <a href="https://wa.me/34692183833" class="underline font-semibold">WhatsApp</a> y te damos el acceso al momento.
+    </p>
+
+</main>
+
+<footer class="border-t border-sage-100 py-6 mt-10 text-center text-xs text-sage-500">
+    <p>&copy; 2026 NEIKO HEALTH, S.L. · Cuid-Arte · NIF B22928311 · RM Madrid, hoja M-865423</p>
+</footer>
+
+<script>
+(function () {
+    const orden = new URLSearchParams(location.search).get('order');
+    if (orden) {
+        document.getElementById('orden-num').textContent = orden;
+        document.getElementById('orden').classList.remove('hidden');
+    }
+})();
+</script>
+
+</body>
+</html>
