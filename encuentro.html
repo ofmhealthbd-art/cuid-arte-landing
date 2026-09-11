@@ -170,10 +170,11 @@
 
         // Borrador local para quien deja el formulario a medias y vuelve mas tarde.
         // NO se guardan los campos clinicos (relacion con el cancer, tipo, estadio, tratamiento,
-        // notas medicas): el movil puede ser compartido y ese dato no debe quedar escrito ahi.
+        // notas medicas, alergias y necesidades alimentarias propias y de la acompanante): el movil
+        // puede ser compartido y ese dato no debe quedar escrito ahi.
         // Tampoco los consentimientos: se dan en el momento, no se heredan de otra sesion.
         const CLAVE_BORRADOR = `encuentro_borrador_${EVENT_SLUG}`;
-        const CAMPOS_NO_GUARDADOS = ['relation_to_cancer', 'cancer_type', 'cancer_stage', 'in_active_treatment', 'medical_notes', 'accepts_privacy', 'accepts_marketing'];
+        const CAMPOS_NO_GUARDADOS = ['relation_to_cancer', 'cancer_type', 'cancer_stage', 'in_active_treatment', 'medical_notes', 'dietary_needs', 'companion_dietary_needs', 'accepts_privacy', 'accepts_marketing'];
         const CADUCIDAD_BORRADOR = 30 * 24 * 60 * 60 * 1000;
 
         // Un borrador solo cuenta si tiene algo escrito de verdad: el prefijo telefonico
