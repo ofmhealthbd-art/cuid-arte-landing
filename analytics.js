@@ -1,13 +1,21 @@
 // ============================================================
 // Google Analytics 4 — Escuela Cuid-Arte  (G-LQ4M9D3YDW)
-// Carga con Consent Mode v2: la analítica queda DENEGADA por
-// defecto y solo se concede si el usuario aceptó "todas" las
-// cookies en el banner (cookie-consent.js → localStorage
-// "cookie_consent" === "all"). RGPD/AEPD compliant.
+// Consent Mode v2 BÁSICO (11-sep-2026): la librería gtag/js NO se
+// descarga ni se ejecuta `config` hasta que el visitante acepta
+// "todas" las cookies en el banner (cookie-consent.js →
+// localStorage "cookie_consent" === "all", o el evento
+// `cookieConsent` con ese valor). Antes era el modo AVANZADO:
+// gtag se cargaba siempre y hacía pings sin cookies a Google
+// (IP, user-agent, pantalla, idioma) antes de decidir y tras
+// rechazar. Resultado: sin aceptar, 0 peticiones a
+// googletagmanager.com y google-analytics.com.
+// Se mantiene `consent default denied` + `consent update granted`
+// por si algún día se vuelve al modo avanzado.
 // ============================================================
 (function () {
   'use strict';
   var GA_ID = 'G-LQ4M9D3YDW';
+  var gaCargado = false;
 
   window.dataLayer = window.dataLayer || [];
   function gtag() { dataLayer.push(arguments); }
@@ -23,29 +31,34 @@
     analytics_storage: 'denied'
   });
 
-  // Si en una visita anterior ya aceptó todas, conceder analítica.
+  // Solo aquí se concede la analítica, se configura la propiedad y se
+  // inserta la librería. Antes de esto no sale nada hacia Google.
+  function activarGA() {
+    if (gaCargado) return;
+    gaCargado = true;
+    gtag('consent', 'update', { analytics_storage: 'granted' });
+    gtag('config', GA_ID);
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+    document.head.appendChild(s);
+  }
+
+  // Si en una visita anterior ya aceptó todas, activar ahora.
   try {
-    if (localStorage.getItem('cookie_consent') === 'all') {
-      gtag('consent', 'update', { analytics_storage: 'granted' });
-    }
+    if (localStorage.getItem('cookie_consent') === 'all') activarGA();
   } catch (e) {}
 
-  // Al aceptar "todas" en el banner, conceder analítica al momento.
+  // Al decidir en el banner: "all" activa; cualquier otra cosa, si la
+  // librería ya estaba cargada en esta misma página, vuelve a denegar.
   document.addEventListener('cookieConsent', function (e) {
-    if (e && e.detail && e.detail.value === 'all') {
-      gtag('consent', 'update', { analytics_storage: 'granted' });
-    }
+    var valor = e && e.detail && e.detail.value;
+    if (valor === 'all') activarGA();
+    else if (gaCargado) gtag('consent', 'update', { analytics_storage: 'denied' });
   });
 
-  gtag('config', GA_ID);
-
-  // Cargar la librería de gtag.
-  var s = document.createElement('script');
-  s.async = true;
-  s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
-  document.head.appendChild(s);
-
-  // Umami — analítica sin cookies (no requiere consentimiento). Complementa a GA4.
+  // Umami — medición de audiencia sin cookies ni almacenamiento en el
+  // terminal (declarada como exenta en la política). Complementa a GA4.
   var u = document.createElement('script');
   u.defer = true;
   u.src = 'https://monitorizacion-umami.pqtiji.easypanel.host/script.js';
