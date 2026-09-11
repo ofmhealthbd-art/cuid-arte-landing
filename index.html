@@ -312,9 +312,11 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // Franja del II Encuentro bajo la portada. Encendida el 18-ago-2026: la pagina del
-        // evento esta publicada e indexable, y la home es la que mas visitas trae.
-        const ANUNCIO_ENCUENTRO_VISIBLE = true;
+        // Franja del II Encuentro bajo la portada (y su enlace en menu, menu movil y pie).
+        // Encendida el 18-ago-2026. Apagada el 11-sep-2026: el II Encuentro (25-27 sep) se
+        // pospone sin fecha. Volver a true cuando haya fecha nueva y la pagina del evento
+        // vuelva a admitir inscripciones.
+        const ANUNCIO_ENCUENTRO_VISIBLE = false;
 
 
         // --- HOOKS ---

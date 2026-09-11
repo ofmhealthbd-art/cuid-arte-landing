@@ -4,16 +4,16 @@
     <script src="/analytics.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>II Encuentro Cuid-Arte | 25-27 Septiembre 2026 | Hinojares, Jaén</title>
-    <meta name="description" content="Tres días para cuidarte, aprender y volver a lo esencial. Encuentro de bienestar oncológico en la Sierra de Cazorla con la Dra. Odile Fernández. 25-27 de septiembre de 2026.">
+    <title>II Encuentro Cuid-Arte | Pospuesto · nueva fecha por anunciar | Sierra de Cazorla</title>
+    <meta name="description" content="El II Encuentro Cuid-Arte, tres días de bienestar oncológico en la Sierra de Cazorla con la Dra. Odile Fernández, se pospone: nueva fecha por anunciar. Qué es el encuentro y cómo enterarte de la próxima edición.">
     <link rel="canonical" href="https://escuelacuidarte.com/encuentro.html">
 
     <!-- Tarjeta al compartir (WhatsApp, Instagram, email, redes). Sin esto el enlace viaja pelado,
          y este enlace se comparte a mano mucho mas de lo que se busca en Google. -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Escuela Cuid-Arte">
-    <meta property="og:title" content="II Encuentro Cuid-Arte · 25-27 de septiembre de 2026">
-    <meta property="og:description" content="Tres días en la Sierra de Cazorla para cuidarte, aprender y volver a lo esencial, con la Dra. Odile Fernández. Plazas limitadas.">
+    <meta property="og:title" content="II Encuentro Cuid-Arte · pospuesto, nueva fecha por anunciar">
+    <meta property="og:description" content="Tres días en la Sierra de Cazorla para cuidarte, aprender y volver a lo esencial, con la Dra. Odile Fernández. Nueva fecha por anunciar.">
     <meta property="og:url" content="https://escuelacuidarte.com/encuentro.html">
     <meta property="og:locale" content="es_ES">
     <meta property="og:image" content="https://escuelacuidarte.com/imagen/og-encuentro.jpg">
@@ -21,8 +21,8 @@
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Grupo del I Encuentro Cuid-Arte entrenando en el patio del hotel, en la Sierra de Cazorla">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="II Encuentro Cuid-Arte · 25-27 de septiembre de 2026">
-    <meta name="twitter:description" content="Tres días en la Sierra de Cazorla para cuidarte, aprender y volver a lo esencial, con la Dra. Odile Fernández. Plazas limitadas.">
+    <meta name="twitter:title" content="II Encuentro Cuid-Arte · pospuesto, nueva fecha por anunciar">
+    <meta name="twitter:description" content="Tres días en la Sierra de Cazorla para cuidarte, aprender y volver a lo esencial, con la Dra. Odile Fernández. Nueva fecha por anunciar.">
     <meta name="twitter:image" content="https://escuelacuidarte.com/imagen/og-encuentro.jpg">
 
     <meta name="robots" content="index,follow">
@@ -54,7 +54,11 @@
     <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- Structured data: evento con fecha, lugar y precios -->
+    <!-- Structured data: evento con fecha y lugar.
+         11-sep-2026: POSPUESTO sin fecha. eventStatus pasa a EventPostponed y se quitan las
+         ofertas (no se vende nada). Google pide dejar la fecha original hasta conocer la nueva.
+         Al fijar fecha: EventScheduled, fechas nuevas y recuperar el bloque "offers" de git
+         (commit d04d223). Los textos del <head> de arriba tambien llevan la fecha vieja quitada. -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -63,7 +67,7 @@
       "description": "Tres días para cuidarte, aprender y volver a lo esencial: nutrición anticáncer, gestión emocional, senderismo, yoga, entrenamiento adaptado y una experiencia con caballos, en la Sierra de Cazorla.",
       "startDate": "2026-09-25T17:00:00+02:00",
       "endDate": "2026-09-27T15:30:00+02:00",
-      "eventStatus": "https://schema.org/EventScheduled",
+      "eventStatus": "https://schema.org/EventPostponed",
       "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
       "url": "https://escuelacuidarte.com/encuentro.html",
       "location": {
@@ -84,12 +88,7 @@
         "url": "https://escuelacuidarte.com"
       },
       "image": "https://escuelacuidarte.com/imagen/og-encuentro.jpg",
-      "performer": { "@type": "Person", "name": "Dra. Odile Fernández" },
-      "offers": [
-        { "@type": "Offer", "name": "Habitación doble compartida", "price": "300", "priceCurrency": "EUR", "availability": "https://schema.org/InStock", "url": "https://escuelacuidarte.com/encuentro.html#registro", "validFrom": "2026-08-18T00:00:00+02:00" },
-        { "@type": "Offer", "name": "Habitación individual", "price": "370", "priceCurrency": "EUR", "availability": "https://schema.org/InStock", "url": "https://escuelacuidarte.com/encuentro.html#registro", "validFrom": "2026-08-18T00:00:00+02:00" },
-        { "@type": "Offer", "name": "Actividades y comidas sin alojamiento", "price": "150", "priceCurrency": "EUR", "availability": "https://schema.org/LimitedAvailability", "url": "https://escuelacuidarte.com/encuentro.html#registro", "validFrom": "2026-08-18T00:00:00+02:00" }
-      ]
+      "performer": { "@type": "Person", "name": "Dra. Odile Fernández" }
     }
     </script>
 
@@ -126,6 +125,17 @@
         const supabase = isConfigured ? window.supabase.createClient(SB_URL, SB_KEY) : null;
 
         const EVENT_SLUG = 'encuentro-cuidarte-2026-09';
+
+        // 11-sep-2026: el II Encuentro (25-27 sep) se POSPONE sin fecha. Con esto en false la
+        // pagina sigue viva (esta indexada y se comparte a mano) pero no vende: sin precios, sin
+        // formulario, sin fechas, sin llamadas a la base; en su lugar, el aviso de aplazamiento.
+        // Mismo patron que ANUNCIO_ENCUENTRO_VISIBLE en index.html. Para reabrir: true aqui,
+        // fechas nuevas en el <head> y en el JSON-LD, y `estado = 'abierta'` en event_editions
+        // (la funcion encuentro-inscribir rechaza altas mientras no lo este).
+        const INSCRIPCIONES_ABIERTAS = false;
+        // Pospuesto, la pagina tiene UN sitio donde apuntarse: la lista de espera (#registro),
+        // que guarda la edge `encuentro-lista-espera` en event_waitlist y avisa a Slack. Nada va
+        // al movil de nadie: el equipo la lee en v_encuentro_lista_espera.
 
         // El alta y el cobro los resuelve la funcion `encuentro-inscribir` en el servidor:
         // ella decide el precio, si eres alumna y si quedan plazas. Esta tabla es solo para
@@ -211,6 +221,10 @@
             // El banco devuelve a /encuentro.html?pago=ko cuando el cobro no sale.
             const [pagoFallido] = useState(() => new URLSearchParams(location.search).get('pago') === 'ko');
             const [openFaq, setOpenFaq] = useState(null);
+            // Lista de espera (solo con el encuentro pospuesto).
+            const [espera, setEspera] = useState({ nombre: '', email: '', telefono: '', privacidad: false });
+            const [esperaEstado, setEsperaEstado] = useState('');   // '' | 'enviando' | 'ok' | 'ya' | 'error'
+            const [esperaErrores, setEsperaErrores] = useState({});
             const [toast, setToast] = useState({ msg: '', visible: false, type: 'success' });
 
             // De donde viene quien abre esta pagina (UTMs, click-ids, referrer externo). La
@@ -227,7 +241,7 @@
             // Disponibilidad. El rol anon NO puede leer la tabla (la RLS solo permite INSERT),
             // asi que va por RPC: la funcion devuelve contadores agregados, no filas.
             useEffect(() => {
-                if (!supabase) return;
+                if (!supabase || !INSCRIPCIONES_ABIERTAS) return;
                 supabase.rpc('fn_encuentro_estado', { p_event_slug: EVENT_SLUG })
                     .then(({ data, error }) => {
                         if (error || !data) return;
@@ -266,6 +280,31 @@
                 setVerified(null);
                 setYaInscrita(null);
                 olvidarBorrador();
+            };
+
+            const apuntarseListaEspera = async (e) => {
+                e.preventDefault();
+                const errs = {};
+                if (!espera.nombre.trim()) errs.nombre = true;
+                if (!espera.email.includes('@')) errs.email = true;
+                if (!espera.privacidad) errs.privacidad = true;
+                setEsperaErrores(errs);
+                if (Object.keys(errs).length) return;
+                if (!supabase) { setEsperaEstado('error'); return; }
+                setEsperaEstado('enviando');
+                try {
+                    const { data, error } = await supabase.functions.invoke('encuentro-lista-espera', {
+                        body: {
+                            nombre: espera.nombre.trim(),
+                            email: espera.email.trim(),
+                            telefono: espera.telefono.trim() || null,
+                            accepts_privacy: true,
+                            ...atribucion(),
+                        },
+                    });
+                    if (error || !data?.ok) { setEsperaEstado('error'); return; }
+                    setEsperaEstado(data.ya_estaba ? 'ya' : 'ok');
+                } catch (err) { console.error(err); setEsperaEstado('error'); }
             };
 
             const showToast = (msg, type = 'success') => {
@@ -450,17 +489,19 @@
                 ? <p className="text-xs text-red-400 mt-1">{children}</p>
                 : null;
 
+            // Con el encuentro pospuesto se esconden las preguntas de ESTA edicion (precio,
+            // plazo del 22-sep, ropa de septiembre, cancelacion): quedan las del formato.
             const FAQS = [
-                { q: '¿Qué incluye el precio?', a: 'Dos noches de alojamiento, pensión completa desde la cena del viernes hasta la comida del domingo, todas las actividades del programa —incluida la sesión con caballos— y el acompañamiento del equipo Cuid-Arte durante los tres días. El paseo a caballo es lo único aparte (+27 €).' },
+                { soloAbierto: true, q: '¿Qué incluye el precio?', a: 'Dos noches de alojamiento, pensión completa desde la cena del viernes hasta la comida del domingo, todas las actividades del programa —incluida la sesión con caballos— y el acompañamiento del equipo Cuid-Arte durante los tres días. El paseo a caballo es lo único aparte (+27 €).' },
                 { q: '¿Tengo que montar a caballo?', a: 'No. La sesión con caballos es de tierra: entrar en la pista con la manada, conocerlos, aprender a leer su lenguaje corporal y manejarlos en la cuadra. Eso va incluido para todas y no requiere montar. El paseo a caballo de después es opcional, cuesta 27 € y lo lleva una empresa de turismo activo con seguro y material propio. Tú decides si te apetece montar o prefieres quedarte con los pies en el suelo.' },
-                { q: '¿Puedo venir sin alojarme?', a: 'Sí. Hay una modalidad de 150 € que incluye todas las actividades y las comidas (cena del viernes, comida y cena del sábado y comida del domingo), sin alojamiento ni desayunos. Esta modalidad se cierra el 22 de septiembre, tres días antes del encuentro, porque hay que dar al hotel el número de comensales.' },
+                { soloAbierto: true, q: '¿Puedo venir sin alojarme?', a: 'Sí. Hay una modalidad de 150 € que incluye todas las actividades y las comidas (cena del viernes, comida y cena del sábado y comida del domingo), sin alojamiento ni desayunos. Esta modalidad se cierra el 22 de septiembre, tres días antes del encuentro, porque hay que dar al hotel el número de comensales.' },
                 { q: '¿Puedo ir sola?', a: 'Por supuesto. La mayoría viene sola: es una de las mejores formas de conocer a las demás. Si eliges habitación doble te asignamos compañera.' },
-                { q: '¿Qué tengo que llevar?', a: 'Ropa cómoda, calzado de senderismo y calzado cerrado para la sesión con caballos (no se entra a la pista con sandalias). Lleva también algo de abrigo: a finales de septiembre las mañanas y las noches en la sierra refrescan bastante, aunque el día sea caluroso.' },
+                { soloAbierto: true, q: '¿Qué tengo que llevar?', a: 'Ropa cómoda, calzado de senderismo y calzado cerrado para la sesión con caballos (no se entra a la pista con sandalias). Lleva también algo de abrigo: a finales de septiembre las mañanas y las noches en la sierra refrescan bastante, aunque el día sea caluroso.' },
                 { q: '¿Se adapta si tengo movilidad reducida?', a: 'Sí. El hotel está preparado para personas con discapacidad, y las actividades están pensadas para adaptarse: hay alternativa para cada bloque. Indícalo en el formulario y lo preparamos contigo antes de que llegues.' },
                 { q: '¿A qué hora tengo que dejar la habitación el domingo?', a: 'No te preocupes por eso: aunque el hotel tiene su salida a las 12:00, lo tenemos hablado con ellos y el grupo se queda hasta después de comer. El domingo puedes estar en el taller y en la comida sin ir mirando el reloj ni bajar la maleta a media mañana.' },
                 { q: '¿Puedo llevar a mi perro?', a: 'El hotel no admite mascotas, así que esta vez no. Si eso te complica venir, escríbenos y buscamos una solución.' },
                 { q: '¿Puedo llevar acompañante que no sea alumna?', a: 'Sí. Hay plazas a precio general para quienes no pertenecen a la Escuela. Familiares, parejas y cuidadores son bienvenidos.' },
-                { q: '¿Puedo cancelar?', a: 'Hasta 15 días antes te devolvemos el importe completo. Entre 15 y 7 días antes, el 50%. A menos de 7 días no hay devolución, pero puedes ceder tu plaza a otra persona. Y si no puedes venir por un motivo médico —un ingreso, un cambio de ciclo, una complicación—, te devolvemos el importe íntegro o te guardamos la plaza para el siguiente encuentro. Escríbenos por WhatsApp y lo resolvemos.' },
+                { soloAbierto: true, q: '¿Puedo cancelar?', a: 'Hasta 15 días antes te devolvemos el importe completo. Entre 15 y 7 días antes, el 50%. A menos de 7 días no hay devolución, pero puedes ceder tu plaza a otra persona. Y si no puedes venir por un motivo médico —un ingreso, un cambio de ciclo, una complicación—, te devolvemos el importe íntegro o te guardamos la plaza para el siguiente encuentro. Escríbenos por WhatsApp y lo resolvemos.' },
             ];
 
             const DIA_VIERNES = [
@@ -536,7 +577,7 @@
 
                             <div className="max-w-2xl reveal-up" style={{ animationDelay: '0.5s' }}>
                                 <div className="mb-6">
-                                    <p className="font-heading text-sand-400 text-xs font-bold uppercase tracking-[6px] mb-5">25 — 27 Septiembre 2026</p>
+                                    <p className="font-heading text-sand-400 text-xs font-bold uppercase tracking-[6px] mb-5">{INSCRIPCIONES_ABIERTAS ? '25 — 27 Septiembre 2026' : 'Nueva fecha por anunciar'}</p>
                                     <h1 className="font-display text-6xl md:text-8xl lg:text-9xl font-bold text-white leading-[0.9] mb-2">
                                         II Encuentro
                                     </h1>
@@ -548,7 +589,7 @@
                                     Cuida tu cuerpo, alimenta tu alma
                                 </p>
                                 <a href="#registro" className="group inline-flex items-center gap-4 bg-sand-400 hover:bg-white text-sage-900 font-heading font-bold py-4 px-10 rounded-full text-base transition-all duration-500 shadow-2xl shadow-sand-400/30 hover:shadow-white/20">
-                                    Reservar mi plaza
+                                    {INSCRIPCIONES_ABIERTAS ? 'Reservar mi plaza' : 'Avísame cuando haya fecha'}
                                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3"/></svg>
                                 </a>
                             </div>
@@ -557,7 +598,8 @@
                                 <div className="flex items-center gap-4">
                                     <div className="bg-sand-400/15 border border-sand-400/25 backdrop-blur-md rounded-full py-2.5 px-6">
                                         <p className="text-sand-400 font-heading font-bold text-xs uppercase tracking-[2px]">
-                                            {camasRestantes !== null && camasRestantes <= 5 && camasRestantes > 0
+                                            {!INSCRIPCIONES_ABIERTAS ? 'Pospuesto · sin fecha'
+                                                : camasRestantes !== null && camasRestantes <= 5 && camasRestantes > 0
                                                 ? `Últimas ${camasRestantes} plazas`
                                                 : 'Plazas limitadas'}
                                         </p>
@@ -717,13 +759,13 @@
                             <div className="text-center mb-14">
                                 <p className="text-sand-500 font-heading text-[10px] font-bold uppercase tracking-[4px] mb-3">Programa</p>
                                 <h2 className="font-display text-3xl font-bold text-sage-900">Tres días, hora a hora</h2>
-                                <p className="text-sage-400 text-xs mt-3 font-heading italic">Puede haber ajustes menores según el tiempo</p>
+                                <p className="text-sage-400 text-xs mt-3 font-heading italic">{INSCRIPCIONES_ABIERTAS ? 'Puede haber ajustes menores según el tiempo' : 'Así estaba planteado; con la nueva fecha puede haber ajustes'}</p>
                             </div>
 
                             <div className="grid md:grid-cols-3 gap-8">
                                 <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-sage-100 overflow-hidden">
                                     <div className="bg-sage-700 px-7 py-5">
-                                        <p className="font-display text-xl font-bold text-white">Viernes 25</p>
+                                        <p className="font-display text-xl font-bold text-white">{INSCRIPCIONES_ABIERTAS ? 'Viernes 25' : 'Viernes'}</p>
                                         <p className="text-sage-300 text-xs font-heading tracking-wide">Llegada y grupo</p>
                                     </div>
                                     <Timeline items={DIA_VIERNES} />
@@ -731,7 +773,7 @@
 
                                 <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-sage-100 overflow-hidden">
                                     <div className="bg-sage-800 px-7 py-5">
-                                        <p className="font-display text-xl font-bold text-white">Sábado 26</p>
+                                        <p className="font-display text-xl font-bold text-white">{INSCRIPCIONES_ABIERTAS ? 'Sábado 26' : 'Sábado'}</p>
                                         <p className="text-sage-300 text-xs font-heading tracking-wide">Naturaleza, ciencia y caballos</p>
                                     </div>
                                     <Timeline items={DIA_SABADO} />
@@ -739,7 +781,7 @@
 
                                 <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-sage-100 overflow-hidden">
                                     <div className="bg-sand-500 px-7 py-5">
-                                        <p className="font-display text-xl font-bold text-white">Domingo 27</p>
+                                        <p className="font-display text-xl font-bold text-white">{INSCRIPCIONES_ABIERTAS ? 'Domingo 27' : 'Domingo'}</p>
                                         <p className="text-sand-100 text-xs font-heading tracking-wide">Cuerpo, emoción y cierre</p>
                                     </div>
                                     <Timeline items={DIA_DOMINGO} />
@@ -748,8 +790,8 @@
                         </div>
                     </section>
 
-                    {/* ═══ PRECIOS ═══ */}
-                    <section className="py-24 botanical">
+                    {/* ═══ PRECIOS ═══ (solo con inscripciones abiertas: pospuesto no se vende nada) */}
+                    {INSCRIPCIONES_ABIERTAS && <section className="py-24 botanical">
                         <div className="max-w-4xl mx-auto px-6">
                             <div className="text-center mb-12">
                                 <p className="text-sand-500 font-heading text-[10px] font-bold uppercase tracking-[4px] mb-3">Inversión</p>
@@ -818,10 +860,63 @@
                                 Incluye 2 noches de alojamiento, pensión completa desde la cena del viernes hasta la comida del domingo, todas las actividades del programa y el acompañamiento del equipo Cuid-Arte. La modalidad sin alojamiento incluye las actividades y las comidas (no los desayunos).
                             </p>
                         </div>
-                    </section>
+                    </section>}
 
-                    {/* ═══ FORMULARIO ═══ */}
-                    <section id="registro" className="py-24 bg-white grain">
+                    {/* ═══ AVISO DE APLAZAMIENTO (11-sep-2026) ═══ Ocupa el sitio del formulario y hereda su
+                        id: los enlaces a #registro que ya circulan (Instagram, WhatsApp) caen aqui. */}
+                    {!INSCRIPCIONES_ABIERTAS && <section id="registro" className="py-24 bg-white grain">
+                        <div className="max-w-2xl mx-auto px-6">
+                            <div className="bg-sage-50 rounded-3xl p-10 md:p-12 border border-sage-200/60 text-center">
+                                <p className="text-sand-500 font-heading text-[10px] font-bold uppercase tracking-[4px] mb-4">Cambio de planes</p>
+                                <h2 className="font-display text-3xl md:text-4xl font-bold text-sage-900 mb-6">El II Encuentro se pospone</h2>
+                                <div className="divider-leaf w-16 h-px mx-auto mb-6"></div>
+                                <p className="text-sage-600 text-base leading-relaxed max-w-lg mx-auto mb-4">
+                                    Por motivos de organización, el encuentro previsto para el 25-27 de septiembre se aplaza a una fecha nueva.
+                                </p>
+                                <p className="text-sage-600 text-base leading-relaxed max-w-lg mx-auto mb-8">
+                                    En cuanto la tengamos la verás aquí. Si quieres que te avisemos nosotros, déjanos tu nombre y tu email.
+                                </p>
+
+                                {(esperaEstado === 'ok' || esperaEstado === 'ya') ? (
+                                    <div className="bg-white rounded-2xl p-6 border border-sage-200/60 max-w-md mx-auto">
+                                        <p className="text-3xl mb-2">🌿</p>
+                                        <p className="font-heading font-bold text-sage-800 text-sm">{esperaEstado === 'ya' ? 'Ya estabas en la lista' : 'Apuntada'}</p>
+                                        <p className="text-sage-500 text-xs mt-1">Te avisamos en cuanto haya fecha.</p>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={apuntarseListaEspera} noValidate className="max-w-md mx-auto text-left space-y-3">
+                                        <div>
+                                            <input type="text" value={espera.nombre} onChange={e => setEspera({ ...espera, nombre: e.target.value })} placeholder="Tu nombre *" autoComplete="name"
+                                                className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sage-500 transition-colors ${esperaErrores.nombre ? 'border-red-300' : 'border-sage-200/60'}`} />
+                                            {esperaErrores.nombre && <p className="text-xs text-red-400 mt-1">Dinos cómo te llamas.</p>}
+                                        </div>
+                                        <div>
+                                            <input type="email" value={espera.email} onChange={e => setEspera({ ...espera, email: e.target.value })} placeholder="Tu email *" autoComplete="email"
+                                                className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sage-500 transition-colors ${esperaErrores.email ? 'border-red-300' : 'border-sage-200/60'}`} />
+                                            {esperaErrores.email && <p className="text-xs text-red-400 mt-1">Necesitamos un email válido para avisarte.</p>}
+                                        </div>
+                                        <input type="tel" value={espera.telefono} onChange={e => setEspera({ ...espera, telefono: e.target.value })} placeholder="Tu teléfono (opcional)" autoComplete="tel"
+                                            className="w-full bg-white border border-sage-200/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sage-500 transition-colors" />
+                                        <label className="flex items-start gap-3 cursor-pointer">
+                                            <input type="checkbox" checked={espera.privacidad} onChange={e => setEspera({ ...espera, privacidad: e.target.checked })} className="mt-0.5 w-4 h-4 accent-sage-500" />
+                                            <span className={`text-[11px] leading-relaxed ${esperaErrores.privacidad ? 'text-red-400' : 'text-sage-500'}`}>Acepto la <a href="privacidad.html" target="_blank" className="text-sage-700 underline">Política de Privacidad</a>. Mis datos los tratará NEIKO HEALTH S.L. solo para avisarme de la nueva fecha del Encuentro. *</span>
+                                        </label>
+                                        <button type="submit" disabled={esperaEstado === 'enviando'} className="w-full bg-sand-400 hover:bg-sand-500 text-sage-900 font-heading font-bold py-4 rounded-full text-base transition-all shadow-lg shadow-sand-400/20 disabled:opacity-50">
+                                            {esperaEstado === 'enviando' ? 'Apuntando…' : 'Avísame cuando haya fecha'}
+                                        </button>
+                                        {esperaEstado === 'error' && <p className="text-xs text-red-400 text-center">No hemos podido apuntarte. Prueba de nuevo en un momento.</p>}
+                                    </form>
+                                )}
+
+                                <p className="text-sage-400 text-xs mt-8 max-w-md mx-auto leading-relaxed">
+                                    Si ya tenías tu plaza reservada, nos ponemos en contacto contigo personalmente.
+                                </p>
+                            </div>
+                        </div>
+                    </section>}
+
+                    {/* ═══ FORMULARIO ═══ (solo con inscripciones abiertas) */}
+                    {INSCRIPCIONES_ABIERTAS && <section id="registro" className="py-24 bg-white grain">
                         <div className="max-w-2xl mx-auto px-6">
                             <div className="text-center mb-12">
                                 <p className="text-sand-500 font-heading text-[10px] font-bold uppercase tracking-[4px] mb-3">Tu plaza te espera</p>
@@ -1206,7 +1301,7 @@
                                 </div>
                             )}
                         </div>
-                    </section>
+                    </section>}
 
                     {/* ═══ FAQ ═══ */}
                     <section className="py-24 botanical">
@@ -1216,7 +1311,7 @@
                                 <h2 className="font-display text-3xl font-bold text-sage-900">Preguntas frecuentes</h2>
                             </div>
                             <div className="space-y-3">
-                                {FAQS.map((faq, i) => (
+                                {FAQS.filter(f => INSCRIPCIONES_ABIERTAS || !f.soloAbierto).map((faq, i) => (
                                     <div key={i} className="bg-white/70 backdrop-blur-sm rounded-2xl border border-sage-100 overflow-hidden transition-all hover:border-sage-200">
                                         <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full text-left px-7 py-5 flex justify-between items-center gap-4">
                                             <span className="font-heading font-semibold text-sm text-sage-800">{faq.q}</span>
@@ -1233,8 +1328,8 @@
                         </div>
                     </section>
 
-                    {/* ═══ CONTACTO ═══ */}
-                    <section className="py-20 bg-sage-50/50">
+                    {/* ═══ CONTACTO ═══ (solo con inscripciones abiertas: pospuesto, la unica via es la lista de espera) */}
+                    {INSCRIPCIONES_ABIERTAS && <section className="py-20 bg-sage-50/50">
                         <div className="max-w-4xl mx-auto px-6 text-center">
                             <h2 className="font-display text-3xl font-bold text-sage-900 mb-3">¿Tienes dudas?</h2>
                             <p className="text-sage-500 text-sm mb-10">Escríbenos por WhatsApp</p>
@@ -1255,17 +1350,17 @@
                                 ))}
                             </div>
                         </div>
-                    </section>
+                    </section>}
 
                     {/* ═══ CTA FINAL ═══ */}
                     <section className="py-24 grain" style={{ background: 'linear-gradient(160deg, #1a2e1a 0%, #2d4a2d 50%, #3d5f3d 100%)' }}>
                         <div className="max-w-3xl mx-auto px-6 text-center">
-                            <p className="font-display text-4xl md:text-5xl font-bold text-white italic mb-4">¿Te animas?</p>
+                            <p className="font-display text-4xl md:text-5xl font-bold text-white italic mb-4">{INSCRIPCIONES_ABIERTAS ? '¿Te animas?' : '¿Quieres venir a la próxima?'}</p>
                             <div className="divider-leaf w-16 h-px mx-auto mb-6"></div>
                             <p className="text-sage-400 text-sm italic mb-8 font-display">Cuidarte hoy, es ganar vida mañana.</p>
-                            <p className="text-sand-400 font-heading font-bold text-xs uppercase tracking-[2px] mb-6">25-27 septiembre · Plazas limitadas</p>
+                            <p className="text-sand-400 font-heading font-bold text-xs uppercase tracking-[2px] mb-6">{INSCRIPCIONES_ABIERTAS ? '25-27 septiembre · Plazas limitadas' : 'Nueva fecha por anunciar'}</p>
                             <a href="#registro" className="inline-flex items-center gap-3 bg-sand-400 hover:bg-sand-500 text-sage-900 font-heading font-bold py-4 px-12 rounded-full text-lg transition-all shadow-lg shadow-sand-400/20 hover:shadow-xl hover:-translate-y-0.5">
-                                Reservar mi plaza
+                                {INSCRIPCIONES_ABIERTAS ? 'Reservar mi plaza' : 'Avísame cuando haya fecha'}
                             </a>
                         </div>
                     </section>
@@ -1294,9 +1389,9 @@
                     {/* ═══ WHATSAPP FLOTANTE ═══ */}
                     {/* Mientras el banner de cookies esta abierto, el boton sube: en movil el banner
                         ocupa 170px de alto y lo dejaba enterrado justo al entrar. */}
-                    <a href="https://wa.me/34664401328?text=Hola%2C%20tengo%20una%20duda%20sobre%20el%20II%20Encuentro%20Cuid-Arte." target="_blank" rel="noopener noreferrer" className={`fixed left-6 z-50 bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl shadow-green-500/25 hover:shadow-2xl transition-all hover:scale-110 bottom-6`}>
+                    {INSCRIPCIONES_ABIERTAS && <a href="https://wa.me/34664401328?text=Hola%2C%20tengo%20una%20duda%20sobre%20el%20II%20Encuentro%20Cuid-Arte." target="_blank" rel="noopener noreferrer" className={`fixed left-6 z-50 bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl shadow-green-500/25 hover:shadow-2xl transition-all hover:scale-110 bottom-6`}>
                         <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492l4.644-1.217A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.153 0-4.144-.68-5.78-1.836l-.404-.263-2.75.72.735-2.686-.29-.421A9.94 9.94 0 012 12C2 6.486 6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></svg>
-                    </a>
+                    </a>}
 
                     {/* Cookies: el banner común del sitio lo pinta cookie-consent.js (clave cookie_consent),
                         el mismo que en la portada. 11-sep-2026: fuera el banner propio de esta página, que

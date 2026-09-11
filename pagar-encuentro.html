@@ -26,7 +26,7 @@
 
         <div class="bg-gradient-to-br from-cuidarte-green to-cuidarte-green-deep border-b-4 border-cuidarte-gold px-6 py-7 text-center">
             <p class="font-heading font-bold text-white text-xl">Cuid-Arte</p>
-            <p class="text-white/85 text-[11px] uppercase tracking-[1.5px] mt-1">II Encuentro &middot; 25-27 septiembre 2026</p>
+            <p id="subtitulo" class="text-white/85 text-[11px] uppercase tracking-[1.5px] mt-1">II Encuentro &middot; 25-27 septiembre 2026</p>
         </div>
 
         <div id="contenido" class="px-6 py-8">
@@ -48,6 +48,12 @@ const FN = 'https://hapzytcloqivthmkodjg.supabase.co/functions/v1/encuentro-reto
 const token = new URLSearchParams(location.search).get('t') || '';
 const cont = document.getElementById('contenido');
 
+// 11-sep-2026: el II Encuentro se POSPONE sin fecha. Con esto en true la pagina no pregunta por
+// la reserva ni abre la pasarela: solo el aviso. El servidor (encuentro-retomar) tambien lo
+// rechaza por su cuenta leyendo event_editions.estado; esto es para que la pantalla no parpadee.
+// Mismo patron que INSCRIPCIONES_ABIERTAS en encuentro.html.
+const ENCUENTRO_POSPUESTO = true;
+
 const euros = (n) => Number(n).toLocaleString('es-ES', { minimumFractionDigits: 0 }) + '&euro;';
 
 function aviso(titulo, texto, conWhatsapp) {
@@ -59,6 +65,8 @@ function aviso(titulo, texto, conWhatsapp) {
 }
 
 const ERRORES = {
+    edicion_pospuesta: ['El II Encuentro se pospone', 'No hace falta que termines ning&uacute;n pago: el encuentro se aplaza a una fecha nueva y, si ten&iacute;as plaza reservada, nos ponemos en contacto contigo personalmente. Si quieres que te avisemos de la nueva fecha, <a href="/encuentro.html#registro" class="text-cuidarte-green-deep underline font-semibold">ap&uacute;ntate en la lista de espera</a>.'],
+    edicion_cerrada: ['Este encuentro ya no admite pagos', 'Si ten&iacute;as plaza reservada, nos ponemos en contacto contigo personalmente.'],
     enlace_invalido: ['Este enlace no es v&aacute;lido', 'Puede que se haya copiado a medias. Escr&iacute;benos y te mandamos uno nuevo.'],
     enlace_caducado: ['Este enlace ya ha caducado', 'Por seguridad los enlaces de pago duran unos d&iacute;as. Escr&iacute;benos y te enviamos uno nuevo al momento.'],
     no_se_pudo_abrir_el_pago: ['No hemos podido abrir el pago', 'Prueba de nuevo en un minuto. Si sigue igual, escr&iacute;benos y lo resolvemos contigo.'],
@@ -126,6 +134,11 @@ function pintarReserva(d) {
 }
 
 (async function () {
+    if (ENCUENTRO_POSPUESTO) {
+        document.getElementById('subtitulo').textContent = 'II Encuentro · nueva fecha por anunciar';
+        aviso(ERRORES.edicion_pospuesta[0], ERRORES.edicion_pospuesta[1], false);
+        return;
+    }
     if (!token) { aviso(ERRORES.enlace_invalido[0], ERRORES.enlace_invalido[1], true); return; }
     try {
         const r = await fetch(FN + '?t=' + encodeURIComponent(token) + '&accion=info');
