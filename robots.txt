@@ -5,7 +5,6 @@ Disallow: /pago-ok.html
 Disallow: /pagar-encuentro.html
 Disallow: /encuesta-encuentro.html
 Disallow: /gracias.html
-Disallow: /setter-preview.html
 
 # Bots de IA generativa — permitidos explícitamente (GEO)
 User-agent: GPTBot

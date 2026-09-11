@@ -249,19 +249,10 @@
                     });
             }, []);
 
-            // Aviso de inscripcion ya existente, en cuanto escribe el email:
-            // enterarse al final, despues de rellenar los dos pasos, es la peor forma de saberlo.
-            const comprobarInscripcionPrevia = async (email) => {
-                if (!supabase) return;
-                const limpio = (email || '').toLowerCase().trim();
-                if (!limpio.includes('@') || limpio.length < 5) return;
-                const { data, error } = await supabase.rpc('fn_encuentro_estado', {
-                    p_event_slug: EVENT_SLUG,
-                    p_email: limpio,
-                });
-                if (error || !data) return;
-                setYaInscrita(data.ya_inscrita ? { estado: data.estado, reserva: data.reserva } : null);
-            };
+            // 11-sep-2026: se retira la comprobación previa «¿ya estás inscrita?» por email. Permitía a
+            // cualquiera saber si un correo ajeno estaba inscrito en un encuentro de pacientes oncológicas.
+            // Si ya está inscrita, el servidor lo dice al enviar (error `ya_inscrita`) y se retoma el pago.
+            const comprobarInscripcionPrevia = async () => {};
 
 
             // Guardado continuo del borrador mientras rellena.
@@ -296,26 +287,12 @@
                 setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 4000);
             };
 
+            // 11-sep-2026: la condición de alumna la decide el servidor (encuentro-inscribir) al
+            // confirmar. Antes la página consultaba `clientes` desde el navegador: bajo RLS devolvía
+            // siempre vacío (la web decía «no te encontramos» a alumnas reales) y era una sonda pública
+            // sobre la tabla clínica. Aquí solo se anota la respuesta; el precio se aplica al final.
             const verifyStudent = async () => {
-                if (!supabase) return;
-                if (!form.email || !form.email.includes('@')) return;
-                setVerifying(true);
-                try {
-                    const { data } = await supabase
-                        .from('clientes')
-                        .select('email, first_name')
-                        .eq('email', form.email.toLowerCase().trim())
-                        .maybeSingle();
-                    setVerified(!!data);
-                    if (data) {
-                        setForm(prev => ({ ...prev, is_student: 'yes' }));
-                        showToast('Verificada. Tienes precio especial de alumna.', 'success');
-                    } else {
-                        setForm(prev => ({ ...prev, is_student: 'no' }));
-                        showToast('No hemos encontrado tu email en la Escuela.', 'info');
-                    }
-                } catch (e) { console.error(e); }
-                finally { setVerifying(false); }
+                setVerified(true);
             };
 
             const needsRoom = form.experience_type === 'alojamiento';
@@ -966,7 +943,7 @@
                                     {needsRoom && (<>
                                     <div className="space-y-1.5">
                                         <label className={labelClass}>¿Eres o has sido alumna de Escuela Cuid-Arte? *</label>
-                                        <p className="text-[10px] text-sage-400 italic -mt-0.5 mb-1">Si eres alumna, usa el mismo email de tu registro para verificar</p>
+                                        <p className="text-[10px] text-sage-400 italic -mt-0.5 mb-1">Si eres alumna, usa el mismo email de tu registro: el precio de alumna se aplica automáticamente al confirmar</p>
                                         <div className="flex gap-3">
                                             <button type="button" onClick={() => { setForm({...form, is_student: 'yes'}); verifyStudent(); setErrors({...errors, is_student: false}); }} className={`flex-1 py-3.5 rounded-2xl border-2 font-heading font-semibold text-sm transition-all ${groupBorder('is_student', form.is_student === 'yes')}`}>
                                                 Sí, soy alumna
@@ -976,10 +953,8 @@
                                             </button>
                                         </div>
                                         <FieldError field="is_student">Dinos si eres alumna para aplicar el precio que te corresponde</FieldError>
-                                        {form.is_student === 'yes' && verified === true && <p className="text-xs text-sage-600 font-medium mt-1">✓ Verificada — precio especial aplicado</p>}
-                                        {form.is_student === 'yes' && verified === false && <p className="text-xs text-sand-600 font-medium mt-1">No encontramos tu email. Verifica o contacta por WhatsApp.</p>}
-                                        {verifying && <p className="text-xs text-sage-400 mt-1">Verificando...</p>}
-                                    </div>
+                                        {form.is_student === 'yes' && verified === true && <p className="text-xs text-sage-600 font-medium mt-1">✓ Al confirmar comprobaremos tu email y aplicaremos el precio de alumna</p>}
+                                                                                                                    </div>
 
                                     <div className="space-y-1.5">
                                         <label className={labelClass}>Tipo de habitación *</label>

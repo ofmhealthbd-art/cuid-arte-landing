@@ -488,8 +488,7 @@
                 email: "", name: "", firstName: "", lastName1: "", lastName2: "", phonePrefix: "+34", phone: "",
                 age: "", sex: "Mujer", country: "España",
                 situation: "",
-                tipoCancer: "", estadio: "Desconocido",
-                perdidaPeso: "No", condicionFisica: "Sedentario",
+                condicionFisica: "Sedentario",
                 compromiso: "", // Sin valor inicial — fuerza decisión consciente
                 disponibilidad: "",
                 inversion: "", // Nueva pregunta cualificadora (sin números)
@@ -560,7 +559,7 @@
                         .maybeSingle();
                     if (error) { setFormStep(2); return; }
                     if (data) {
-                        const registrationComplete = !!(data.tipo_cancer || data.situacion);
+                        const registrationComplete = !!(data.situation || data.situacion || data.tipo_cancer);
                         let parsedPrefix = "+34", parsedPhone = data.phone || "";
                         const knownPrefixes = ["+593","+351","+34","+44","+49","+33","+39","+52","+54","+56","+57","+51","+1"];
                         for (const prefix of knownPrefixes) {
@@ -598,15 +597,6 @@
                 else if (form.situation === 'Paciente diagnosticada') score += 12;
                 else if (form.situation === 'Post-tratamiento') score += 8;
                 else if (form.situation === 'Familiar / Cuidador') score += 5;
-
-                if (form.perdidaPeso === 'Sí, bastante') score += 8;
-                else if (form.perdidaPeso === 'Sí, un poco') score += 4;
-
-                const estadio = form.estadio || '';
-                if (estadio.includes('IV')) score += 7;
-                else if (estadio === 'III') score += 5;
-                else if (estadio === 'II') score += 3;
-                else if (estadio === 'I' || estadio.includes('In Situ')) score += 1;
 
                 // TIER 3: Engagement (20pts max)
                 const preocLen = (form.preocupacion || '').trim().length;
@@ -651,9 +641,7 @@
                             situation: admissionForm.situation || "No indicado",
                             interest: structuredInterest,
                             consent: true,
-                            tipo_cancer: admissionForm.tipoCancer || null,
-                            estadio: admissionForm.estadio || null,
-                            perdida_peso: admissionForm.perdidaPeso || null,
+                            consent_text_version: 'admision-2026-09-11',
                             actividad_fisica: admissionForm.condicionFisica || null,
                             nivel_compromiso: parseInt(admissionForm.compromiso) || 0,
                             disponibilidad: admissionForm.disponibilidad || null,
@@ -1719,25 +1707,10 @@
                                             <div className="bg-cuidarte-mint/30 border border-cuidarte-green/20 rounded-xl p-3">
                                                 <p className="text-xs text-cuidarte-green-deep leading-relaxed text-center"><strong>Nuestro equipo de nutrición, entrenamiento y psicología oncológica</strong> te acompañará de forma personalizada. Cuéntanos un poco más sobre ti.</p>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-500 uppercase">Tipo de Cáncer</label>
-                                                    <input type="text" required placeholder="Ej: Mama..." className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-cuidarte-green outline-none text-sm" value={admissionForm.tipoCancer} onChange={(e) => setAdmissionForm({...admissionForm,tipoCancer:e.target.value})} />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-500 uppercase">Estadío</label>
-                                                    <select className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-cuidarte-green outline-none text-sm" value={admissionForm.estadio} onChange={(e) => setAdmissionForm({...admissionForm,estadio:e.target.value})}>
-                                                        {["Desconocido","In Situ (0)","I","II","III","IV (Metastásico)"].map(e=><option key={e}>{e}</option>)}
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-1">
-                                                    <label className="text-[10px] font-bold text-slate-500 uppercase">¿Has perdido peso?</label>
-                                                    <select className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-cuidarte-green outline-none text-sm" value={admissionForm.perdidaPeso} onChange={(e) => setAdmissionForm({...admissionForm,perdidaPeso:e.target.value})}>
-                                                        <option>No</option><option>Sí, un poco</option><option>Sí, bastante</option>
-                                                    </select>
-                                                </div>
+                                            {/* Datos de salud: el tipo de cáncer, el estadio y la pérdida de peso se recogen en la
+                                                llamada, con consentimiento explícito registrado en el CRM. Aquí solo lo mínimo para
+                                                saber si el programa encaja (auditoría 11-sep-2026, RGPD art. 9 y 5.1.c). */}
+                                            <div className="grid grid-cols-1 gap-4">
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-slate-500 uppercase">Actividad Física</label>
                                                     <select className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-cuidarte-green outline-none text-sm" value={admissionForm.condicionFisica} onChange={(e) => setAdmissionForm({...admissionForm,condicionFisica:e.target.value})}>
@@ -1826,20 +1799,20 @@
                                                         {(admissionForm.preocupacion || '').trim().length} / 50 mín
                                                     </span>
                                                 </div>
-                                                <textarea rows="3" required minLength={50} className="w-full px-4 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-cuidarte-green outline-none text-sm resize-none" placeholder="Cuéntanos un poco de ti, qué te preocupa, qué necesitas... Cuanto más nos cuentes, mejor podremos prepararnos para hablar contigo." value={admissionForm.preocupacion} onChange={(e) => setAdmissionForm({...admissionForm,preocupacion:e.target.value})}></textarea>
+                                                <textarea rows="3" required minLength={50} className="w-full px-4 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-cuidarte-green outline-none text-sm resize-none" placeholder="Cuéntanos qué te preocupa y qué necesitas. No hace falta que incluyas diagnóstico ni datos médicos: eso lo hablaremos contigo en la llamada." value={admissionForm.preocupacion} onChange={(e) => setAdmissionForm({...admissionForm,preocupacion:e.target.value})}></textarea>
                                             </div>
                                             <label className="flex items-start gap-3 cursor-pointer">
                                                 <input type="checkbox" required className="mt-1 w-4 h-4 accent-cuidarte-green rounded" />
-                                                <span className="text-[10px] text-slate-500 leading-tight">Acepto la <a href="privacidad.html" target="_blank" className="text-cuidarte-green-deep underline">Política de Privacidad</a>. Tus datos se tratarán para gestionar tu solicitud.</span>
+                                                <span className="text-[11px] text-slate-500 leading-snug">Consiento expresamente que <strong>NEIKO HEALTH, S.L.</strong> (Escuela Cuid-Arte) trate los datos de este formulario, incluida mi situación respecto al cáncer y lo que cuente sobre mí (datos de salud, art. 9 RGPD), con la única finalidad de valorar si el programa se adapta a mi caso y contactarme para una entrevista. Puedo retirar este consentimiento y ejercer mis derechos en <a href="mailto:privacidad@escuelacuidarte.com" className="text-cuidarte-green-deep underline">privacidad@escuelacuidarte.com</a>. He leído la <a href="privacidad.html" target="_blank" className="text-cuidarte-green-deep underline">Política de Privacidad</a>.</span>
                                             </label>
                                             <button
                                                 type="submit"
-                                                disabled={isSubmitting || !admissionForm.compromiso || !admissionForm.inversion || !admissionForm.timing || !admissionForm.tipoCancer || (admissionForm.preocupacion || '').trim().length < 50}
+                                                disabled={isSubmitting || !admissionForm.compromiso || !admissionForm.inversion || !admissionForm.timing || (admissionForm.preocupacion || '').trim().length < 50}
                                                 className="w-full bg-cuidarte-green text-white font-bold py-3.5 rounded-xl hover:bg-cuidarte-green-deep transition-all shadow-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                             >
                                                 {isSubmitting ? <><svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Guardando...</> : "Completar Registro"}
                                             </button>
-                                            {(!admissionForm.compromiso || !admissionForm.inversion || !admissionForm.timing || !admissionForm.tipoCancer || (admissionForm.preocupacion || '').trim().length < 50) && (
+                                            {(!admissionForm.compromiso || !admissionForm.inversion || !admissionForm.timing || (admissionForm.preocupacion || '').trim().length < 50) && (
                                                 <p className="text-[10px] text-slate-400 text-center italic">Completa todos los campos para enviar</p>
                                             )}
                                         </div>
@@ -1881,6 +1854,7 @@
                                                         situation: admissionForm.situation || "No indicado",
                                                         interest: `${admissionForm.inversion} · ${admissionForm.timing}`,
                                                         consent: true,
+                                                        consent_text_version: 'admision-2026-09-11',
                                                         nivel_compromiso: 2,
                                                         score: 0,
                                                         status: 'unqualified'
