@@ -68,17 +68,22 @@
 
 // ============================================================
 // Atribución de origen del lead (UTMs + referrer, first-touch).
-// Guarda en localStorage el PRIMER origen conocido de la visita
-// para que el formulario de admisión lo envíe con el lead
-// (submit_landing_lead). Sin esto el origen se pierde: 54% de
-// leads "sin origen" y la tienda invisible pese a originar a la
-// mayoría de alumnas (estudio jul-2026).
-// Solo almacenamiento propio, sin terceros ni identificadores de
-// persona: no requiere consentimiento de cookies (como Umami).
+// Se construye al cargar y se guarda SOLO EN MEMORIA
+// (window.__caAttribution) para que el formulario de admisión y el
+// de inscripción al encuentro la adjunten al envío. Sin esto el
+// origen se pierde: 54% de leads "sin origen" y la tienda invisible
+// pese a originar a la mayoría de alumnas (estudio jul-2026).
+// 11-sep-2026: ya NO se escribe en localStorage. El seguimiento de
+// campañas no es "estrictamente necesario" para el visitante
+// (art. 22.2 LSSI, Guía AEPD) y se escribía antes de decidir en el
+// banner y tras rechazar. Ahora el origen solo viaja con la
+// solicitud si la persona la envía. La clave antigua
+// `ca_attribution`, si existe de una visita anterior, se lee una
+// vez como respaldo y se borra.
 // ============================================================
 (function () {
   'use strict';
-  var KEY = 'ca_attribution';
+  var KEY = 'ca_attribution'; // clave antigua: solo se lee y se borra
 
   function leerUtms() {
     var p = new URLSearchParams(window.location.search);
@@ -131,29 +136,36 @@
     return data;
   }
 
+  var actual = null;
   try {
+    // Respaldo único: lo que dejó la versión anterior en localStorage
+    // se recoge y se borra. A partir de aquí no se vuelve a escribir.
+    var heredado = null;
+    try {
+      heredado = JSON.parse(localStorage.getItem(KEY) || 'null');
+      localStorage.removeItem(KEY);
+    } catch (e) {}
+
     var utm = leerUtms();
     var ref = document.referrer || '';
     // El referrer interno (navegación entre páginas de la propia landing) no es origen.
     try { if (ref && new URL(ref).hostname === window.location.hostname) ref = ''; } catch (e) { ref = ''; }
 
-    var guardado = null;
-    try { guardado = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
-
     var hayDatoNuevo = !!(utm.utm_source || Object.keys(utm).length || ref);
-    // First-touch: solo se escribe si no había nada, o si llega un UTM real
-    // y lo guardado era solo referrer/directo (el UTM es señal más fuerte).
-    if ((!guardado && hayDatoNuevo) || (utm.utm_source && guardado && !guardado.utm_source)) {
-      localStorage.setItem(KEY, JSON.stringify(construir(utm, ref)));
+    // First-touch: un UTM real manda; si no lo hay, vale lo heredado; si no, el referrer.
+    if (utm.utm_source || (hayDatoNuevo && !(heredado && heredado.canal_detectado))) {
+      actual = construir(utm, ref);
+    } else if (heredado && heredado.canal_detectado) {
+      actual = heredado;
     }
   } catch (e) {}
 
-  // API para el formulario: siempre devuelve un objeto con canal_detectado.
+  window.__caAttribution = actual;
+
+  // API para los formularios: siempre devuelve un objeto con canal_detectado.
   window.getLeadAttribution = function () {
-    try {
-      var d = JSON.parse(localStorage.getItem(KEY) || 'null');
-      if (d && d.canal_detectado) return d;
-    } catch (e) {}
+    var d = window.__caAttribution;
+    if (d && d.canal_detectado) return d;
     return {
       utm_source: null, utm_medium: null, utm_campaign: null,
       utm_content: null, utm_term: null, referrer: null,

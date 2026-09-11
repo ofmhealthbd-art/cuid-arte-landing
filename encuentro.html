@@ -213,28 +213,14 @@
             const [toast, setToast] = useState({ msg: '', visible: false, type: 'success' });
             const [showCookies, setShowCookies] = useState(!localStorage.getItem('cookies_accepted'));
 
-            // De donde viene quien abre esta pagina. Se guarda al ENTRAR y sobrevive a recargas y
-            // a que la persona navegue: si se leyera al enviar el formulario, cualquier recarga
-            // borraria la campaña de la URL y la inscripcion quedaria sin atribuir. El desplegable
-            // "como nos conociste" seguira estando, pero eso es lo que ella recuerda; esto es lo
-            // que de verdad ocurrio.
-            useEffect(() => {
-                try {
-                    if (sessionStorage.getItem('enc_atribucion')) return;
-                    const q = new URLSearchParams(location.search);
-                    const datos = {
-                        utm_source: q.get('utm_source'), utm_medium: q.get('utm_medium'),
-                        utm_campaign: q.get('utm_campaign'), utm_content: q.get('utm_content'),
-                        referrer: document.referrer || null,
-                    };
-                    if (Object.values(datos).some(Boolean)) {
-                        sessionStorage.setItem('enc_atribucion', JSON.stringify(datos));
-                    }
-                } catch (e) { /* sin sessionStorage se inscribe igual: esto nunca bloquea una venta */ }
-            }, []);
-
+            // De donde viene quien abre esta pagina (UTMs, click-ids, referrer externo). La
+            // construye analytics.js al cargar y la deja SOLO EN MEMORIA (window.__caAttribution):
+            // 11-sep-2026 se retira el sessionStorage `enc_atribucion`, que se escribia antes de
+            // decidir en el banner de cookies y tambien tras rechazar (art. 22.2 LSSI). El origen
+            // viaja unicamente con la inscripcion si la persona la envia. El desplegable "como nos
+            // conociste" sigue estando: eso es lo que ella recuerda; esto es lo que de verdad ocurrio.
             const atribucion = () => {
-                try { return JSON.parse(sessionStorage.getItem('enc_atribucion') || '{}'); }
+                try { return (window.getLeadAttribution && window.getLeadAttribution()) || {}; }
                 catch (e) { return {}; }
             };
 
