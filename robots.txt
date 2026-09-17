@@ -1,31 +1,18 @@
+# Escuela cerrada a nuevas alumnas (17-sep-2026): la portada lleva noindex y las
+# páginas de venta redirigen a ella. Se retira también el permiso explícito a los
+# bots de IA que había para el GEO: ya no hay nada que quieran citar.
 User-agent: *
-Allow: /
+Disallow: /metodo.html
+Disallow: /encuentro.html
+Disallow: /membresia.html
+Disallow: /membresia-ok.html
 Disallow: /pago.html
 Disallow: /pago-ok.html
 Disallow: /pagar-encuentro.html
 Disallow: /encuesta-encuentro.html
 Disallow: /gracias.html
-
-# Bots de IA generativa — permitidos explícitamente (GEO)
-User-agent: GPTBot
-Allow: /
-
-User-agent: OAI-SearchBot
-Allow: /
-
-User-agent: ChatGPT-User
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: Claude-Web
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
+Disallow: /renovar.html
+Disallow: /salida.html
+Disallow: /devolucion.html
 
 Sitemap: https://escuelacuidarte.com/sitemap.xml
